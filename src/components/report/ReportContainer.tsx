@@ -79,7 +79,7 @@ export const ReportContainer: React.FC<ReportContainerProps> = ({
   // Cálculo da circunferência para o anel de Score circular (raio 36)
   const radius = 36;
   const circumference = 2 * Math.PI * radius;
-  const scorePercent = risks.riskScore;
+  const scorePercent = risks.riskScore ?? 0;
   const strokeDashoffset = circumference - (scorePercent / 100) * circumference;
 
   return (
@@ -187,11 +187,11 @@ export const ReportContainer: React.FC<ReportContainerProps> = ({
                 </div>
                 <div className="py-2.5 flex justify-between items-center">
                   <span className="text-slate-500 font-medium">Ano de fabricação</span>
-                  <span className="font-semibold text-slate-900">{basic.yearFabrication}</span>
+                  <span className="font-semibold text-slate-900">{basic.yearFabrication ?? '—'}</span>
                 </div>
                 <div className="py-2.5 flex justify-between items-center">
                   <span className="text-slate-500 font-medium">Ano/modelo</span>
-                  <span className="font-semibold text-slate-900">{basic.yearModel}</span>
+                  <span className="font-semibold text-slate-900">{basic.yearModel ?? '—'}</span>
                 </div>
                 <div className="py-2.5 flex justify-between items-center">
                   <span className="text-slate-500 font-medium">Cor</span>
@@ -239,7 +239,7 @@ export const ReportContainer: React.FC<ReportContainerProps> = ({
                     <span>Leilão</span>
                   </div>
                   <span className="font-semibold text-slate-700">
-                    {risks.auction.hasAuction ? 'Possui registro' : 'Não possui registro'}
+                    {risks.auction.hasAuction == null ? 'Não informado' : risks.auction.hasAuction ? 'Possui registro' : 'Não possui registro'}
                   </span>
                 </div>
 
@@ -250,7 +250,7 @@ export const ReportContainer: React.FC<ReportContainerProps> = ({
                     <span>Sinistro</span>
                   </div>
                   <span className="font-semibold text-slate-700">
-                    {risks.accident.hasAccident ? 'Possui registro' : 'Não possui registro'}
+                    {risks.accident.hasAccident == null ? 'Não informado' : risks.accident.hasAccident ? 'Possui registro' : 'Não possui registro'}
                   </span>
                 </div>
 
@@ -261,7 +261,7 @@ export const ReportContainer: React.FC<ReportContainerProps> = ({
                     <span>Roubo e furto</span>
                   </div>
                   <span className="font-semibold text-slate-700">
-                    {risks.theftRecord.isStolenOrTheftAlert ? 'Possui registro' : 'Não possui registro'}
+                    {risks.theftRecord.isStolenOrTheftAlert == null ? 'Não informado' : risks.theftRecord.isStolenOrTheftAlert ? 'Possui registro' : 'Não possui registro'}
                   </span>
                 </div>
 
@@ -276,7 +276,7 @@ export const ReportContainer: React.FC<ReportContainerProps> = ({
                       ? 'bg-amber-50 text-amber-700 border border-amber-200'
                       : 'text-slate-700'
                   }`}>
-                    {financial.gravame.hasFinancialRestriction ? 'Com registro' : 'Sem restrição'}
+                    {financial.gravame.hasFinancialRestriction == null ? 'Não informado' : financial.gravame.hasFinancialRestriction ? 'Com registro' : 'Sem restrição'}
                   </span>
                 </div>
 
@@ -287,7 +287,7 @@ export const ReportContainer: React.FC<ReportContainerProps> = ({
                     <span>Restrições</span>
                   </div>
                   <span className="font-semibold text-slate-700">
-                    {risks.judicialRestrictions.hasRestriction ? 'Possui restrição' : 'Não possui registro'}
+                    {risks.judicialRestrictions.hasRestriction == null ? 'Não informado' : risks.judicialRestrictions.hasRestriction ? 'Possui restrição' : 'Não possui registro'}
                   </span>
                 </div>
 
@@ -298,18 +298,18 @@ export const ReportContainer: React.FC<ReportContainerProps> = ({
                     <span>Débitos e multas</span>
                   </div>
                   <span className="font-semibold text-slate-700">
-                    {financial.hasDebts ? `R$ ${financial.totalDebtsAmount.toFixed(2)}` : 'Não possui débitos'}
+                    {financial.hasDebts == null ? 'Não informado' : financial.hasDebts ? (financial.totalDebtsAmount == null ? 'Débitos encontrados' : `R$ ${financial.totalDebtsAmount.toFixed(2)}`) : 'Não possui débitos'}
                   </span>
                 </div>
 
                 {/* IPVA e licenciamento */}
                 <div className="py-2.5 flex justify-between items-center">
                   <div className="flex items-center gap-2 text-slate-600">
-                    <CheckCircle2 className="w-3.5 h-3.5 text-emerald-500" />
+                    <CheckCircle2 className="w-3.5 h-3.5 text-orange-500" />
                     <span>IPVA e licenciamento</span>
                   </div>
-                  <span className="font-semibold text-[#059669]">
-                    {financial.ipvaStatus === 'OK' && financial.licensingStatus === 'OK' ? 'Regular' : 'Pendente'}
+                  <span className="font-semibold text-[#FF6A00]">
+                    {financial.ipvaStatus === 'Não informado' || financial.licensingStatus === 'Não informado' ? 'Não informado' : financial.ipvaStatus === 'OK' && financial.licensingStatus === 'OK' ? 'Regular' : 'Pendente'}
                   </span>
                 </div>
               </div>
@@ -382,7 +382,7 @@ export const ReportContainer: React.FC<ReportContainerProps> = ({
                   {basic.brand} {basic.model.replace(/LIMITED.*/i, '').trim()}
                 </h2>
                 <p className="text-[11px] font-semibold text-slate-500 uppercase tracking-wider">
-                  {basic.version} | {basic.yearFabrication} / {basic.yearModel}
+                  {basic.version} | {basic.yearFabrication ?? '—'} / {basic.yearModel ?? '—'}
                 </p>
 
                 {/* Badge de Placa Mercosul ou tag FIPE */}
@@ -391,8 +391,8 @@ export const ReportContainer: React.FC<ReportContainerProps> = ({
                     <span className="inline-flex items-center px-2.5 py-1 rounded-md bg-blue-50 border border-blue-200 text-blue-700 text-[11px] font-black tracking-wide">
                       TABELA FIPE
                     </span>
-                    <span className="text-sm font-black text-emerald-700">
-                      {basic.fipeValue.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}
+                    <span className="text-sm font-black text-orange-700">
+                      {basic.fipeValue == null ? 'Não informado' : basic.fipeValue.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}
                     </span>
                   </div>
                 ) : (
@@ -429,7 +429,7 @@ export const ReportContainer: React.FC<ReportContainerProps> = ({
                       <circle cx="42" cy="42" r={radius} stroke="#e2e8f0" strokeWidth="7" fill="none" />
                       <circle
                         cx="42" cy="42" r={radius}
-                        stroke="#059669" strokeWidth="7"
+                        stroke="#FF6A00" strokeWidth="7"
                         strokeDasharray={circumference}
                         strokeDashoffset={strokeDashoffset}
                         strokeLinecap="round" fill="none"
@@ -438,47 +438,34 @@ export const ReportContainer: React.FC<ReportContainerProps> = ({
                     </svg>
                     <div className="absolute inset-0 flex items-center justify-center">
                       <div className="text-center">
-                        <span className="text-xl font-black text-slate-900 leading-none">{risks.riskScore}</span>
+                        <span className="text-xl font-black text-slate-900 leading-none">{risks.riskScore ?? '—'}</span>
                         <span className="text-[10px] text-slate-400 font-bold leading-none block">/100</span>
                       </div>
                     </div>
                   </div>
 
                   <div className="mt-2">
-                    <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-bold bg-[#e8f8f0] text-[#059669] border border-[#b8eccb]">
-                      Boa compra
+                    <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-bold bg-orange-50 text-orange-700 border border-orange-200">
+                      {risks.riskScore == null ? 'Score não informado' : risks.riskScore >= 70 ? 'Baixo risco' : risks.riskScore >= 40 ? 'Atenção' : 'Alto risco'}
                     </span>
                   </div>
                 </>
               )}
             </div>
 
-            {/* Seção 3: Resumo do Veículo Checklist (3 cols - espaço amplo sem colisões) */}
+            {/* Seção 3: Resumo do Veículo */}
             <div className="lg:col-span-3 border-t lg:border-t-0 lg:border-l border-slate-100 pt-4 lg:pt-0 lg:pl-6 space-y-2">
               <span className="text-xs font-bold text-slate-600 block mb-2">
                 Resumo do veículo
               </span>
 
               <div className="space-y-1.5 text-xs text-slate-700">
-                <div className="flex items-center gap-2">
-                  <div className="w-4 h-4 rounded-full bg-[#059669] flex items-center justify-center text-white flex-shrink-0">
-                    <Check className="w-2.5 h-2.5 stroke-[3]" />
-                  </div>
-                  <span className="text-[11px] font-medium text-slate-700">Sem registro de leilão</span>
-                </div>
-
-                <div className="flex items-center gap-2">
-                  <div className="w-4 h-4 rounded-full bg-[#059669] flex items-center justify-center text-white flex-shrink-0">
-                    <Check className="w-2.5 h-2.5 stroke-[3]" />
-                  </div>
-                  <span className="text-[11px] font-medium text-slate-700">Sem registro de sinistro</span>
-                </div>
-
-                <div className="flex items-center gap-2">
-                  <div className="w-4 h-4 rounded-full bg-[#059669] flex items-center justify-center text-white flex-shrink-0">
-                    <Check className="w-2.5 h-2.5 stroke-[3]" />
-                  </div>
-                  <span className="text-[11px] font-medium text-slate-700">Sem restrição judicial</span>
+                <div className="text-[11px] text-slate-600 space-y-2">
+                  <p>Leilão: <strong>{risks.auction.hasAuction == null ? 'Não informado' : risks.auction.hasAuction ? 'Registro encontrado' : 'Sem registro'}</strong></p>
+                  <p>Sinistro: <strong>{risks.accident.hasAccident == null ? 'Não informado' : risks.accident.hasAccident ? 'Registro encontrado' : 'Sem registro'}</strong></p>
+                  <p>Restrição judicial: <strong>{risks.judicialRestrictions.hasRestriction == null ? 'Não informado' : risks.judicialRestrictions.hasRestriction ? 'Registro encontrado' : 'Sem registro'}</strong></p>
+                  <p>Roubo ou furto: <strong>{risks.theftRecord.isStolenOrTheftAlert == null ? 'Não informado' : risks.theftRecord.isStolenOrTheftAlert ? 'Registro encontrado' : 'Sem registro'}</strong></p>
+                  <p>Débitos: <strong>{financial.hasDebts == null ? 'Não informado' : financial.hasDebts ? (financial.totalDebtsAmount == null ? 'Débitos encontrados' : `R$ ${financial.totalDebtsAmount.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`) : 'Sem débitos'}</strong></p>
                 </div>
 
                 <div className="flex items-center gap-2">
@@ -487,20 +474,20 @@ export const ReportContainer: React.FC<ReportContainerProps> = ({
                       <AlertTriangle className="w-2.5 h-2.5 stroke-[2.5]" />
                     </div>
                   ) : (
-                    <div className="w-4 h-4 rounded-full bg-[#059669] flex items-center justify-center text-white flex-shrink-0">
+                    <div className="w-4 h-4 rounded-full bg-[#FF6A00] flex items-center justify-center text-white flex-shrink-0">
                       <Check className="w-2.5 h-2.5 stroke-[3]" />
                     </div>
                   )}
                   <span className={`text-[11px] font-medium ${financial.gravame.hasFinancialRestriction ? 'text-amber-700' : 'text-slate-700'}`}>
-                    {financial.gravame.hasFinancialRestriction ? 'Com gravame' : 'Sem gravame'}
+                    {financial.gravame.hasFinancialRestriction == null ? 'Gravame não informado' : financial.gravame.hasFinancialRestriction ? 'Com gravame' : 'Sem gravame'}
                   </span>
                 </div>
 
                 <div className="flex items-center gap-2">
-                  <div className="w-4 h-4 rounded-full bg-[#059669] flex items-center justify-center text-white flex-shrink-0">
+                  <div className="w-4 h-4 rounded-full bg-[#FF6A00] flex items-center justify-center text-white flex-shrink-0">
                     <Check className="w-2.5 h-2.5 stroke-[3]" />
                   </div>
-                  <span className="text-[11px] font-medium text-slate-700">Sem débitos</span>
+                  <span className="text-[11px] font-medium text-slate-700">Débitos: {financial.hasDebts == null ? 'Não informado' : financial.hasDebts ? 'Há registros' : 'Sem registros'}</span>
                 </div>
               </div>
             </div>
@@ -520,15 +507,15 @@ export const ReportContainer: React.FC<ReportContainerProps> = ({
                   </p>
                 </div>
               ) : (
-                <div className="bg-[#edf9f2] border border-[#bbf0cb] rounded-2xl p-5 flex flex-col justify-center h-full">
-                  <div className="w-8 h-8 rounded-full bg-[#d7f5e3] text-[#059669] flex items-center justify-center mb-2">
+                <div className="bg-[#FFF8F1] border border-[#FFD1AD] rounded-2xl p-5 flex flex-col justify-center h-full">
+                  <div className="w-8 h-8 rounded-full bg-[#FFE5CC] text-[#FF6A00] flex items-center justify-center mb-2">
                     <ShieldCheck className="w-5 h-5" />
                   </div>
-                  <h4 className="text-base font-extrabold text-[#14532d] tracking-tight">
-                    Tudo certo!
+                  <h4 className="text-base font-extrabold text-[#7A2E00] tracking-tight">
+                    Resultado da consulta
                   </h4>
-                  <p className="text-xs text-[#166534] leading-relaxed mt-1 font-medium">
-                    {risks.riskSummary || 'O histórico consultado não apresentou ocorrências relevantes para a compra deste veículo.'}
+                  <p className="text-xs text-[#8A3900] leading-relaxed mt-1 font-medium">
+                    {risks.riskSummary || 'Consulte os itens e as informações complementares retornadas pela fonte.'}
                   </p>
                 </div>
               )}
@@ -556,7 +543,7 @@ export const ReportContainer: React.FC<ReportContainerProps> = ({
         maxWidth="md"
         title={
           <div className="flex items-center gap-2">
-            <div className="p-1.5 rounded-lg bg-emerald-500/20 text-emerald-600">
+            <div className="p-1.5 rounded-lg bg-orange-500/20 text-orange-600">
               <ShieldCheck className="w-5 h-5" />
             </div>
             <div>
@@ -568,7 +555,7 @@ export const ReportContainer: React.FC<ReportContainerProps> = ({
       >
         {insuranceProtocol ? (
           <div className="text-center py-6 space-y-4">
-            <div className="w-14 h-14 bg-emerald-100 text-emerald-600 rounded-full flex items-center justify-center mx-auto">
+            <div className="w-14 h-14 bg-orange-100 text-orange-600 rounded-full flex items-center justify-center mx-auto">
               <CheckCircle2 className="w-8 h-8" />
             </div>
             <h3 className="text-lg font-bold text-slate-900">Cotação Solicitada com Sucesso!</h3>
@@ -577,7 +564,7 @@ export const ReportContainer: React.FC<ReportContainerProps> = ({
             </p>
             <div className="p-3 bg-slate-50 rounded-xl border border-slate-200 inline-block text-xs">
               <span className="text-slate-500 block">Protocolo:</span>
-              <strong className="text-emerald-700 text-sm font-mono">{insuranceProtocol}</strong>
+              <strong className="text-orange-700 text-sm font-mono">{insuranceProtocol}</strong>
             </div>
             <div className="pt-2">
               <Button variant="primary" size="md" onClick={() => setIsInsuranceModalOpen(false)}>
@@ -680,7 +667,7 @@ export const ReportContainer: React.FC<ReportContainerProps> = ({
             </div>
             <div>
               <span className="text-slate-500 block">Valor FIPE:</span>
-              <strong className="text-emerald-700 font-bold">R$ {cadastral.fipeValue.toLocaleString('pt-BR')}</strong>
+              <strong className="text-orange-700 font-bold">{cadastral.fipeValue == null ? 'Não informado' : `R$ ${cadastral.fipeValue.toLocaleString('pt-BR')}`}</strong>
             </div>
             <div>
               <span className="text-slate-500 block">Código FIPE:</span>
@@ -688,7 +675,7 @@ export const ReportContainer: React.FC<ReportContainerProps> = ({
             </div>
             <div>
               <span className="text-slate-500 block">Passageiros:</span>
-              <strong className="text-slate-900">{cadastral.passengers} lugares</strong>
+              <strong className="text-slate-900">{cadastral.passengers == null ? 'Não informado' : `${cadastral.passengers} lugares`}</strong>
             </div>
           </div>
 
@@ -713,23 +700,23 @@ export const ReportContainer: React.FC<ReportContainerProps> = ({
         maxWidth="lg"
         title={
           <div className="flex items-center gap-2">
-            <div className="p-1.5 rounded-lg bg-emerald-50 text-emerald-600">
+            <div className="p-1.5 rounded-lg bg-orange-50 text-orange-600">
               <FileCheck2 className="w-5 h-5" />
             </div>
             <div>
-              <h3 className="text-base font-bold text-slate-900">Auditoria Completa de Restrições</h3>
-              <p className="text-xs text-slate-500">Fontes Oficiais: DENATRAN, SINESP, RENAJUD, B3 e Detran</p>
+              <h3 className="text-base font-bold text-slate-900">Detalhes do histórico veicular</h3>
+              <p className="text-xs text-slate-500">Dados fornecidos pela AnyCar</p>
             </div>
           </div>
         }
       >
         <div className="space-y-4 text-xs text-slate-800 max-h-[70vh] overflow-y-auto pr-1">
-          <div className="p-4 bg-emerald-50 border border-emerald-200 rounded-xl text-emerald-900">
+          <div className="p-4 bg-orange-50 border border-orange-200 rounded-xl text-orange-900">
             <h4 className="font-bold text-sm mb-1 flex items-center gap-1.5">
-              <CheckCircle2 className="w-4 h-4 text-emerald-600" />
-              <span>Diagnóstico de Segurança: Aprovado</span>
+              <CheckCircle2 className="w-4 h-4 text-orange-600" />
+              <span>Resultado da consulta</span>
             </h4>
-            <p className="text-xs text-emerald-800">
+            <p className="text-xs text-orange-800">
               {risks.riskSummary}
             </p>
           </div>
@@ -746,9 +733,9 @@ export const ReportContainer: React.FC<ReportContainerProps> = ({
             <div className="p-3 border border-slate-200 rounded-xl">
               <span className="text-slate-500 block font-medium">Situação de Débitos:</span>
               <strong className="text-slate-900 block mt-0.5">
-                {financial.hasDebts ? `Total: R$ ${financial.totalDebtsAmount}` : 'Nenhum débito pendente'}
+                {financial.hasDebts == null ? 'Situação não informada' : financial.hasDebts ? `Total: ${financial.totalDebtsAmount == null ? 'não informado' : `R$ ${financial.totalDebtsAmount.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`}` : 'Nenhum débito pendente'}
               </strong>
-              <p className="text-[11px] text-slate-500 mt-1">IPVA e Licenciamento em dia</p>
+              <p className="text-[11px] text-slate-500 mt-1">IPVA: {financial.ipvaStatus} · Licenciamento: {financial.licensingStatus}</p>
             </div>
           </div>
 
@@ -756,15 +743,26 @@ export const ReportContainer: React.FC<ReportContainerProps> = ({
             <h4 className="font-bold text-slate-900 mb-2">Histórico de Proprietários e Odômetro</h4>
             <div className="flex justify-between items-center text-xs text-slate-700 py-1">
               <span>Total de donos anteriores:</span>
-              <strong>{report.ownersMileage.totalOwnersCount} proprietários</strong>
+              <strong>{report.ownersMileage.totalOwnersCount == null ? 'Não informado' : `${report.ownersMileage.totalOwnersCount} proprietários`}</strong>
             </div>
             <div className="flex justify-between items-center text-xs text-slate-700 py-1 border-t border-slate-200 mt-1">
               <span>Quilometragem estimada:</span>
-              <strong>{report.ownersMileage.estimatedCurrentMileage.toLocaleString('pt-BR')} km</strong>
+              <strong>{report.ownersMileage.estimatedCurrentMileage == null ? 'Não informado' : `${report.ownersMileage.estimatedCurrentMileage.toLocaleString('pt-BR')} km`}</strong>
             </div>
           </div>
         </div>
       </Modal>
+
+      {report.providerData && (
+        <section className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 pb-8" aria-labelledby="provider-data-title">
+          <div className="bg-white border border-slate-200 rounded-2xl p-5 shadow-sm">
+            <h2 id="provider-data-title" className="font-bold text-slate-900 mb-3">Dados complementares da consulta</h2>
+            <pre className="text-xs text-slate-700 whitespace-pre-wrap break-words overflow-auto max-h-[32rem]">
+              {JSON.stringify(report.providerData, null, 2)}
+            </pre>
+          </div>
+        </section>
+      )}
 
     </div>
   );

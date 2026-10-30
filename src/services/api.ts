@@ -1,14 +1,15 @@
 import axios, { AxiosInstance } from 'axios';
+import { authService } from './authService';
+import { API_BASE_URL } from './config';
 import {
   FullVehicleReport,
   VehicleBasicInfo,
-  PixPaymentResponse,
   InspectionBookingRequest,
   InsuranceQuoteRequest
 } from '../types/vehicle';
 
 // Configuração da URL do Backend (Vite env ou fallback padrão)
-export const API_BASE_URL = ((import.meta as any).env?.VITE_API_URL) || 'http://localhost:3000/api';
+export { API_BASE_URL } from './config';
 
 const apiClient: AxiosInstance = axios.create({
   baseURL: API_BASE_URL,
@@ -16,6 +17,11 @@ const apiClient: AxiosInstance = axios.create({
   headers: {
     'Content-Type': 'application/json',
   },
+});
+apiClient.interceptors.request.use((config) => {
+  const token = authService.getToken();
+  if (token) config.headers.Authorization = `Bearer ${token}`;
+  return config;
 });
 
 export const vehicleApi = {
@@ -28,33 +34,33 @@ export const vehicleApi = {
     return response.data;
   },
 
-  /**
-   * Gera o PIX para pagamento e desbloqueio do relatório direto na API
-   */
-  async createPixPayment(plate: string, amount: number = 34.90): Promise<PixPaymentResponse> {
+  async createCheckout(plate: string): Promise<{ paymentId: string; checkoutUrl: string; amount: number; expiresAt: string }> {
     const cleanPlate = plate.toUpperCase().replace(/[^A-Z0-9]/g, '');
-    const response = await apiClient.post<PixPaymentResponse>('/checkout/pix', {
-      plate: cleanPlate,
-      amount,
-    });
+    const response = await apiClient.post('/checkout', { plate: cleanPlate });
     return response.data;
   },
 
-  /**
-   * Verifica se o pagamento do PIX foi confirmado direto na API
-   */
-  async checkPaymentStatus(paymentId: string): Promise<{ isPaid: boolean; status: string }> {
-    const response = await apiClient.get<{ isPaid: boolean; status: string }>(`/checkout/status/${paymentId}`);
+  async getCheckoutStatus(paymentId: string): Promise<{ isPaid: boolean; status: string; reportToken?: string; plate: string }> {
+    const response = await apiClient.get(`/checkout/status/${paymentId}`);
     return response.data;
+  },
+
+  async getAccountHistory(): Promise<FullVehicleReport[]> {
+    const response = await apiClient.get<FullVehicleReport[]>('/auth/reports');
+    return response.data;
+  },
+
+  async clearAccountHistory(): Promise<void> {
+    await apiClient.delete('/auth/reports');
   },
 
   /**
    * Obtém o relatório completo do veículo por placa direto na API
    */
-  async getFullReport(plate: string, paymentToken?: string): Promise<FullVehicleReport> {
+  async getFullReport(plate: string, paymentToken: string): Promise<FullVehicleReport> {
     const cleanPlate = plate.toUpperCase().replace(/[^A-Z0-9]/g, '');
     const response = await apiClient.get<FullVehicleReport>(`/vehicle/report/${cleanPlate}`, {
-      headers: paymentToken ? { Authorization: `Bearer ${paymentToken}` } : {},
+      headers: { Authorization: `Bearer ${paymentToken}` },
     });
     
     // Salva no histórico local do navegador ao receber resposta válida

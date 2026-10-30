@@ -1,54 +1,29 @@
-# 🚗 BenzCheck PRO — Plataforma de Consulta & Histórico Veicular
+# DNAutos Vistorias
 
-![React](https://img.shields.io/badge/React-18-61DAFB?style=for-the-badge&logo=react&logoColor=black)
-![TypeScript](https://img.shields.io/badge/TypeScript-5.0-3178C6?style=for-the-badge&logo=typescript&logoColor=white)
-![Vite](https://img.shields.io/badge/Vite-5.0-646CFF?style=for-the-badge&logo=vite&logoColor=white)
-![TailwindCSS](https://img.shields.io/badge/Tailwind_CSS-3.4-38B2AC?style=for-the-badge&logo=tailwind-css&logoColor=white)
+Plataforma de consulta de histórico veicular com interface DNAutos, autenticação, checkout e histórico de consultas por conta.
 
-Frontend de alta conversão desenvolvido para centralizar a busca de histórico e análise de procedência veicular por placa. O sistema combina uma interface moderna e responsiva com geração dinâmica de relatórios, checkout instantâneo e integração facilitada a APIs de dados automotivos.
+## Executar localmente
 
----
+1. Copie `backend/.env.example` para `backend/.env` e gere um segredo longo para `JWT_SECRET`.
+2. Preencha as credenciais empresariais da AnyCar e as credenciais/preço do Mercado Pago quando estiverem disponíveis.
+3. Copie `.env.example` para `.env` na raiz.
+4. Na raiz, rode `npm run dev:all`.
 
-## ✨ Funcionalidades Principais
+O banco SQLite é criado em `backend/data/benzcheck.sqlite`. Em produção, configure `DATABASE_PATH` para armazenamento persistente, faça backup e proteja o disco. Uma implantação com múltiplas instâncias deve migrar esta camada para PostgreSQL.
 
-### 🎯 Busca & Checkout
-- **Input com Máscara Dinâmica:** Reconhecimento e formatação automática para padrões Mercosul (`ABC1D23`) e Tradicional Cinza (`ABC-1234`).
-- **Prévia Instantânea:** Exibição imediata de dados cadastrais públicos antes da cobrança para engajamento do usuário.
-- **Checkout PIX Integrado:** QR Code dinâmico, código copia-e-cola, contador regressivo de expiração e confirmação visual imediata pós-pagamento.
+## Fluxo de consulta
 
-### 📊 Relatório Inteligente de Riscos
-- **Score de Risco Automático:** Indicador gráfico em arco (0–100) categorizando o veículo em *Livre de Riscos*, *Atenção Moderada* ou *Alto Risco Crítico*.
-- **Painel de Indicadores Críticos:** Status imediato de Leilão, Sinistro, IPVA/Débitos, Roubo/Furto, Gravame/Alienação, Bloqueio RENAJUD, Recall e Odômetro.
-- **Visualização em 4 Abas Temáticas:**
-  1. **Dados Cadastrais & FIPE:** Informações da BIN e gráfico de evolução temporal do valor de mercado.
-  2. **Financeiro & Débitos:** Detalhamento discriminado de multas por órgão autuador e débitos estaduais.
-  3. **Histórico de Sinistros & Leilão:** Registros detalhados com boletins de ocorrência e fotos oficiais das comutações.
-  4. **Proprietários & Odômetro:** Gráfico histórico de rodagem com alertas visuais para suspeita de adulteração.
+1. O cliente cria uma conta ou entra.
+2. Informa a placa e o backend cria uma preferência de pagamento no Mercado Pago.
+3. O Mercado Pago chama o webhook; o backend consulta o status diretamente no gateway e valida o valor.
+4. Só um pagamento aprovado gera o token de acesso temporário ao relatório.
+5. A resposta AnyCar é normalizada para os cartões atuais e a resposta original fica disponível em “Dados complementares”.
+6. Relatórios são guardados por conta e aparecem em Minhas Consultas.
 
-### 🛠️ Recursos Adicionais
-- **Exportação Flexível:** Leiaute otimizado para impressão e geração de relatórios em PDF formatado.
-- **Captação de Leads (Upsell):** Formulários integrados para agendamento de *Vistoria Cautelar Presencial* e cotação de *Seguro/Proteção Veicular*.
-- **Histórico Local ("Minhas Consultas"):** Armazenamento em cache no navegador para reuso do relatório sem nova tarifação.
+## Integrações pendentes de credenciais
 
----
+O backend está estruturado para a API REST empresarial AnyCar (`POST /api/consultar`, header `x-api-key`) e aceita um ou mais tipos de consulta configurados em `ANYCAR_REPORT_TYPES`. Configure apenas tipos cobertos pelo contrato e crédito empresarial contratado; cada chamada pode ter cobrança própria. O schema público dá exemplos de dados cadastrais, FIPE, leilão, sinistro e gravame, mas o contrato/OpenAPI e a composição exata do relatório da conta são necessários para fechar o mapeamento de produção.
 
-## 🛠️ Tech Stack
+Para pagamento, foi escolhido Mercado Pago Checkout Pro: `MERCADO_PAGO_ACCESS_TOKEN`, `MERCADO_PAGO_WEBHOOK_SECRET`, `REPORT_PRICE`, `PUBLIC_APP_URL` e `PUBLIC_API_URL` precisam ser configurados. O gateway só aceita o valor definido pelo backend; não é enviado pelo navegador.
 
-- **Core:** React 18, TypeScript, Vite
-- **Estilização:** Tailwind CSS, Lucide React (Ícones)
-- **Comunicação HTTP:** Axios (com sistema de fallback para dados mockados)
-- **Animações e Efeitos:** Canvas Confetti
-
----
-
-## 📁 Estrutura do Projeto
-
-```text
-src/
-├── components/          # Componentes reutilizáveis de UI (Cards, Inputs, Modais)
-├── features/            # Módulos principais (Checkout, Dashboard, Relatório)
-├── services/            # Cliente de API e chamadas HTTP (api.ts)
-├── types/               # Tipagens TypeScript para requisições e dados veiculares
-├── utils/               # Máscaras de placa, validadores e formatadores de moeda
-├── App.tsx              # Componente raiz e controle de estado global da busca
-└── main.tsx             # Ponto de entrada do React
+Veja `backend/.env.example` para a lista das variáveis. Sem essas configurações, checkout e consulta retornam erro explícito de configuração e nenhuma cobrança ou dado fictício é apresentado.

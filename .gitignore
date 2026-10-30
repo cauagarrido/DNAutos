@@ -12,6 +12,8 @@ dist/
 dist-ssr/
 build/
 out/
+*.sqlite
+*.sqlite-*
 
 # ===========================
 # Ambiente e Segredos

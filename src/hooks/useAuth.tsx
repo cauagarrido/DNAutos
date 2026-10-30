@@ -6,8 +6,8 @@ import { User, RegisterData, LoginData } from '../types/auth';
 interface AuthContextValue {
   isAuthenticated: boolean;
   user: User | null;
-  login: (data: LoginData) => void;
-  register: (data: RegisterData) => void;
+  login: (data: LoginData) => Promise<void>;
+  register: (data: RegisterData) => Promise<void>;
   logout: () => void;
 }
 
@@ -16,13 +16,13 @@ const AuthContext = createContext<AuthContextValue | null>(null);
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(() => authService.getCurrentUser());
 
-  const login = useCallback((data: LoginData) => {
-    const loggedUser = authService.login(data);
+  const login = useCallback(async (data: LoginData) => {
+    const loggedUser = await authService.login(data);
     setUser(loggedUser);
   }, []);
 
-  const register = useCallback((data: RegisterData) => {
-    const newUser = authService.register(data);
+  const register = useCallback(async (data: RegisterData) => {
+    const newUser = await authService.register(data);
     setUser(newUser);
   }, []);
 

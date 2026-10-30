@@ -51,7 +51,7 @@ const SelectField: React.FC<SelectFieldProps> = ({
         value={value}
         onChange={(e) => onChange(e.target.value)}
         disabled={disabled || isLoading}
-        className="w-full appearance-none bg-[#0f1e35] border border-slate-600/70 rounded-xl px-3 py-2.5 pr-9 text-sm text-white placeholder:text-slate-600 focus:outline-none focus:border-emerald-500/70 focus:ring-1 focus:ring-emerald-500/30 transition-all disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer"
+        className="w-full appearance-none bg-[#0f1e35] border border-slate-600/70 rounded-xl px-3 py-2.5 pr-9 text-sm text-white placeholder:text-slate-600 focus:outline-none focus:border-orange-500/70 focus:ring-1 focus:ring-orange-500/30 transition-all disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer"
       >
         <option value="" className="text-slate-400">
           {isLoading ? 'Carregando…' : placeholder}
@@ -159,13 +159,13 @@ export const FipeSearchForm: React.FC<FipeSearchFormProps> = ({ onResult, isLoad
     <div className="space-y-4">
       {/* Indicador dos 4 passos da API FIPE (Parallelum) */}
       <div className="flex items-center justify-between px-1 py-1.5 bg-[#0f1a2e] rounded-lg border border-slate-700/60 text-[10px] text-slate-400 font-medium mb-3">
-        <span className={selectedBrand ? 'text-emerald-400 font-bold' : ''}>1. Marca</span>
+        <span className={selectedBrand ? 'text-orange-400 font-bold' : ''}>1. Marca</span>
         <span>→</span>
-        <span className={selectedModel ? 'text-emerald-400 font-bold' : ''}>2. Modelo</span>
+        <span className={selectedModel ? 'text-orange-400 font-bold' : ''}>2. Modelo</span>
         <span>→</span>
-        <span className={selectedYear ? 'text-emerald-400 font-bold' : ''}>3. Ano</span>
+        <span className={selectedYear ? 'text-orange-400 font-bold' : ''}>3. Ano</span>
         <span>→</span>
-        <span className={canConsult ? 'text-emerald-400 font-bold' : ''}>4. Valor</span>
+        <span className={canConsult ? 'text-orange-400 font-bold' : ''}>4. Valor</span>
       </div>
 
       {/* Tipo de veículo — botões */}
@@ -179,8 +179,8 @@ export const FipeSearchForm: React.FC<FipeSearchFormProps> = ({ onResult, isLoad
               onClick={() => setTipo(opt.value)}
               className={`py-2.5 rounded-xl text-xs font-bold transition-all cursor-pointer border ${
                 tipo === opt.value
-                  ? 'bg-emerald-500 text-slate-950 border-emerald-500 shadow-md shadow-emerald-500/20'
-                  : 'bg-[#0f1e35] text-slate-300 border-slate-600/70 hover:border-emerald-500/40'
+                  ? 'bg-orange-500 text-slate-950 border-orange-500 shadow-md shadow-orange-500/20'
+                  : 'bg-[#0f1e35] text-slate-300 border-slate-600/70 hover:border-orange-500/40'
               }`}
             >
               <span className="block text-base leading-none mb-0.5">{opt.emoji}</span>
@@ -240,7 +240,7 @@ export const FipeSearchForm: React.FC<FipeSearchFormProps> = ({ onResult, isLoad
         onClick={handleConsult}
         disabled={!canConsult}
         id="fipe-consult-btn"
-        className="w-full py-3 rounded-xl bg-emerald-500 hover:bg-emerald-400 disabled:opacity-40 disabled:cursor-not-allowed text-slate-950 font-black text-sm tracking-wide transition-all hover:scale-[1.02] active:scale-[0.98] shadow-lg shadow-emerald-500/25 cursor-pointer flex items-center justify-center gap-2"
+        className="w-full py-3 rounded-xl bg-orange-500 hover:bg-orange-400 disabled:opacity-40 disabled:cursor-not-allowed text-slate-950 font-black text-sm tracking-wide transition-all hover:scale-[1.02] active:scale-[0.98] shadow-lg shadow-orange-500/25 cursor-pointer flex items-center justify-center gap-2"
       >
         {parentLoading ? (
           <Loader2 className="w-4 h-4 animate-spin" />

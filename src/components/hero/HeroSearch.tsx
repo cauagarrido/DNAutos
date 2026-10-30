@@ -32,7 +32,7 @@ export const HeroSearch: React.FC<HeroSearchProps> = ({
   isLoading,
   error,
 }) => {
-  const [tab, setTab] = useState<SearchTab>('fipe');
+  const [tab, setTab] = useState<SearchTab>('placa');
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const raw = e.target.value.toUpperCase().replace(/[^A-Z0-9]/g, '').slice(0, 7);
@@ -44,29 +44,31 @@ export const HeroSearch: React.FC<HeroSearchProps> = ({
   };
 
   return (
-    <div className="w-full relative overflow-hidden bg-[#090e17] text-white">
+    <div className="w-full relative overflow-hidden bg-[#0B1320] text-white">
+      <div className="absolute inset-0 bg-cover bg-center opacity-40" style={{ backgroundImage: "url('/dnautos-hero.png')" }} />
+      <div className="absolute inset-0 bg-gradient-to-r from-[#0B1320] via-[#0B1320]/85 to-[#0B1320]/25" />
       {/* Luz ambiente de fundo */}
-      <div className="absolute top-1/4 left-1/2 -translate-x-1/2 w-[800px] h-[450px] bg-emerald-500/10 blur-[150px] rounded-full pointer-events-none -z-10" />
+      <div className="absolute top-1/4 left-1/2 -translate-x-1/2 w-[800px] h-[450px] bg-orange-500/10 blur-[150px] rounded-full pointer-events-none -z-10" />
       <div className="absolute top-10 right-10 w-[500px] h-[350px] bg-cyan-500/10 blur-[140px] rounded-full pointer-events-none -z-10" />
 
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-8 pb-16 lg:pt-14 lg:pb-24">
+      <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-8 pb-16 lg:pt-14 lg:pb-24">
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 lg:gap-8 items-start">
 
           {/* Coluna Esquerda: Textos & Pílulas */}
           <div className="lg:col-span-6 space-y-6 text-left lg:pt-6">
-            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 text-xs font-bold tracking-wide">
-              <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
-              CONSULTA PROVISÓRIA LIBERADA — SEM CADASTRO
+            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-orange-500/10 border border-orange-500/30 text-orange-400 text-xs font-bold tracking-wide">
+              <span className="w-2 h-2 rounded-full bg-orange-400 animate-pulse" />
+              DNAUTOS VISTORIAS · HISTÓRICO VEICULAR
             </div>
 
             <h1 className="text-4xl sm:text-5xl lg:text-[54px] font-black tracking-tight leading-[1.12] text-white">
-              é a sua <span className="text-[#00e676]">segurança</span><br />
-              na compra do seu<br />
-              próximo veículo.
+              Mais informação.<br />
+              Mais <span className="text-[#FF6A00]">segurança</span><br />
+              para o seu próximo destino.
             </h1>
 
             <p className="text-slate-300 text-sm sm:text-base leading-relaxed max-w-xl font-normal">
-              Consulte o valor FIPE real, verifique o histórico veicular, faça a vistoria cautelar e proteja seu veículo com as melhores opções de seguro.
+              O DNA completo do seu veículo. Consulte o histórico, a situação documental, a quilometragem e muito mais antes de decidir.
             </p>
 
             {/* Pílulas de recursos */}
@@ -79,9 +81,9 @@ export const HeroSearch: React.FC<HeroSearchProps> = ({
               ].map((item, i) => (
                 <div
                   key={i}
-                  className="flex flex-col items-center justify-center p-3 rounded-xl bg-[#0f1726]/80 border border-slate-800/80 hover:border-emerald-500/30 transition-colors text-center group"
+                  className="flex flex-col items-center justify-center p-3 rounded-xl bg-[#0f1726]/80 border border-slate-800/80 hover:border-orange-500/30 transition-colors text-center group"
                 >
-                  <div className="w-8 h-8 rounded-lg bg-emerald-500/10 flex items-center justify-center text-emerald-400 mb-1.5 group-hover:scale-110 transition-transform">
+                  <div className="w-8 h-8 rounded-lg bg-orange-500/10 flex items-center justify-center text-orange-400 mb-1.5 group-hover:scale-110 transition-transform">
                     {item.icon}
                   </div>
                   <span className="text-[11px] font-semibold text-slate-300 leading-tight whitespace-pre-line">
@@ -103,7 +105,7 @@ export const HeroSearch: React.FC<HeroSearchProps> = ({
                   onClick={() => setTab('fipe')}
                   className={`flex-1 flex items-center justify-center gap-2 py-3.5 text-xs font-bold transition-all cursor-pointer ${
                     tab === 'fipe'
-                      ? 'text-emerald-400 border-b-2 border-emerald-400 bg-emerald-500/5'
+                      ? 'text-orange-400 border-b-2 border-orange-400 bg-orange-500/5'
                       : 'text-slate-400 hover:text-slate-200'
                   }`}
                 >
@@ -115,7 +117,7 @@ export const HeroSearch: React.FC<HeroSearchProps> = ({
                   onClick={() => setTab('placa')}
                   className={`flex-1 flex items-center justify-center gap-2 py-3.5 text-xs font-bold transition-all cursor-pointer ${
                     tab === 'placa'
-                      ? 'text-emerald-400 border-b-2 border-emerald-400 bg-emerald-500/5'
+                      ? 'text-orange-400 border-b-2 border-orange-400 bg-orange-500/5'
                       : 'text-slate-400 hover:text-slate-200'
                   }`}
                 >
@@ -135,7 +137,7 @@ export const HeroSearch: React.FC<HeroSearchProps> = ({
                         Consultar Tabela FIPE
                       </h3>
                       <p className="text-xs text-slate-400 mt-0.5">
-                        Dados oficiais via API Parallelum (gratuita).
+                        Consulte o valor atualizado da Tabela FIPE.
                       </p>
                     </div>
                     <FipeSearchForm onResult={onFipeResult} isLoading={isLoading} />
@@ -147,10 +149,10 @@ export const HeroSearch: React.FC<HeroSearchProps> = ({
                   <div>
                     <div className="mb-4">
                       <h3 className="text-base font-bold text-white tracking-tight">
-                        Consultar por Placa
+                        Consultar o histórico
                       </h3>
                       <p className="text-xs text-slate-400 mt-0.5">
-                        Informe a placa do veículo (Mercosul ou tradicional).
+                        Digite a placa para iniciar uma consulta segura.
                       </p>
                     </div>
 
@@ -179,14 +181,14 @@ export const HeroSearch: React.FC<HeroSearchProps> = ({
                       onClick={() => onSearch()}
                       disabled={isLoading || plate.length < 7}
                       id="search-plate-btn"
-                      className="w-full mt-4 py-3 rounded-xl bg-emerald-500 hover:bg-emerald-400 disabled:opacity-40 disabled:cursor-not-allowed text-slate-950 font-black text-sm tracking-wide transition-all hover:scale-[1.02] active:scale-[0.98] shadow-lg shadow-emerald-500/25 cursor-pointer flex items-center justify-center gap-2"
+                      className="w-full mt-4 py-3 rounded-xl bg-orange-500 hover:bg-orange-400 disabled:opacity-40 disabled:cursor-not-allowed text-slate-950 font-black text-sm tracking-wide transition-all hover:scale-[1.02] active:scale-[0.98] shadow-lg shadow-orange-500/25 cursor-pointer flex items-center justify-center gap-2"
                     >
                       {isLoading ? (
                         <div className="w-4 h-4 border-2 border-slate-900 border-t-transparent rounded-full animate-spin" />
                       ) : (
                         <>
                           <ArrowRight className="w-4 h-4 stroke-[2.5]" />
-                          Consultar Placa {plate ? `(${plate})` : ''}
+                          Consultar veículo {plate ? `(${plate})` : ''}
                         </>
                       )}
                     </button>
@@ -200,8 +202,8 @@ export const HeroSearch: React.FC<HeroSearchProps> = ({
                     )}
 
                     <div className="flex items-center justify-center gap-1.5 mt-4 text-[11px] text-slate-400 font-medium">
-                      <Lock className="w-3.5 h-3.5 text-emerald-400" />
-                      <span>Consulta 100% segura e criptografada</span>
+                      <Lock className="w-3.5 h-3.5 text-orange-400" />
+                      <span>Pagamento confirmado antes de liberar o relatório</span>
                     </div>
                   </div>
                 )}

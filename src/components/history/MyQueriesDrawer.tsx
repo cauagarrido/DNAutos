@@ -96,12 +96,12 @@ export const MyQueriesDrawer: React.FC<MyQueriesDrawerProps> = ({
 
                     <span className={`text-[11px] font-bold px-2 py-0.5 rounded-full ${
                       item.risks.overallRiskLevel === 'safe'
-                        ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20'
+                        ? 'bg-orange-500/10 text-orange-400 border border-orange-500/20'
                         : (item.risks.overallRiskLevel === 'warning'
                           ? 'bg-amber-500/10 text-amber-400 border border-amber-500/20'
                           : 'bg-rose-500/10 text-rose-400 border border-rose-500/20')
                     }`}>
-                      Score {item.risks.riskScore}/100
+                      Score {item.risks.riskScore == null ? 'não informado' : `${item.risks.riskScore}/100`}
                     </span>
                   </div>
 

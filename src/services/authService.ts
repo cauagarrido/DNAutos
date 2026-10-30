@@ -1,102 +1,23 @@
+import axios from 'axios';
 import { User, RegisterData, LoginData } from '../types/auth';
-
-const STORAGE_KEY = 'benzcheck_auth';
-const USERS_KEY = 'benzcheck_users';
-
-function getUsers(): Array<User & { password: string }> {
-  try {
-    const raw = localStorage.getItem(USERS_KEY);
-    return raw ? JSON.parse(raw) : [];
-  } catch {
-    return [];
-  }
+import { API_BASE_URL } from './config';
+const STORAGE_KEY = 'benzcheck_session';
+type Session = { user: User; token: string };
+function load(): Session | null {
+  try { const data = JSON.parse(localStorage.getItem(STORAGE_KEY) || 'null'); return data?.token && data?.user ? data : null; } catch { return null; }
 }
-
-function saveUsers(users: Array<User & { password: string }>): void {
-  localStorage.setItem(USERS_KEY, JSON.stringify(users));
-}
-
-function getStoredSession(): User | null {
-  try {
-    const raw = localStorage.getItem(STORAGE_KEY);
-    return raw ? JSON.parse(raw) : null;
-  } catch {
-    return null;
-  }
-}
-
+function save(session: Session) { localStorage.setItem(STORAGE_KEY, JSON.stringify(session)); }
 export const authService = {
-  /**
-   * Registra um novo usuário. Retorna erro se e-mail já cadastrado.
-   */
-  register(data: RegisterData): User {
-    const users = getUsers();
-    const existing = users.find(
-      (u) => u.email.toLowerCase() === data.email.toLowerCase()
-    );
-    if (existing) {
-      throw new Error('Este e-mail já está cadastrado. Faça login.');
-    }
-
-    const newUser: User & { password: string } = {
-      id: `usr_${Date.now()}`,
-      name: data.name.trim(),
-      email: data.email.toLowerCase().trim(),
-      password: data.password,
-      createdAt: new Date().toISOString(),
-    };
-
-    saveUsers([...users, newUser]);
-
-    const session: User = {
-      id: newUser.id,
-      name: newUser.name,
-      email: newUser.email,
-      createdAt: newUser.createdAt,
-    };
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(session));
-    return session;
+  async register(data: RegisterData): Promise<User> {
+    try { const res = await axios.post<Session>(`${API_BASE_URL}/auth/register`, data); save(res.data); return res.data.user; }
+    catch (e: any) { throw new Error(e.response?.data?.message || 'Não foi possível criar sua conta.'); }
   },
-
-  /**
-   * Autentica um usuário existente.
-   */
-  login(data: LoginData): User {
-    const users = getUsers();
-    const found = users.find(
-      (u) =>
-        u.email.toLowerCase() === data.email.toLowerCase() &&
-        u.password === data.password
-    );
-    if (!found) {
-      throw new Error('E-mail ou senha incorretos.');
-    }
-
-    const session: User = {
-      id: found.id,
-      name: found.name,
-      email: found.email,
-      createdAt: found.createdAt,
-    };
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(session));
-    return session;
+  async login(data: LoginData): Promise<User> {
+    try { const res = await axios.post<Session>(`${API_BASE_URL}/auth/login`, data); save(res.data); return res.data.user; }
+    catch (e: any) { throw new Error(e.response?.data?.message || 'Não foi possível entrar.'); }
   },
-
-  /**
-   * Encerra a sessão atual.
-   */
-  logout(): void {
-    localStorage.removeItem(STORAGE_KEY);
-  },
-
-  /**
-   * Retorna o usuário logado ou null.
-   */
-  getCurrentUser(): User | null {
-    return getStoredSession();
-  },
-
-  isAuthenticated(): boolean {
-    return getStoredSession() !== null;
-  },
+  logout() { localStorage.removeItem(STORAGE_KEY); },
+  getCurrentUser(): User | null { return load()?.user ?? null; },
+  getToken(): string | null { return load()?.token ?? null; },
+  isAuthenticated() { return !!load()?.token; },
 };

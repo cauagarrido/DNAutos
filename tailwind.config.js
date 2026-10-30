@@ -9,15 +9,20 @@ export default {
     extend: {
       colors: {
         brand: {
-          green: '#00e676',
-          greenHover: '#00c853',
-          greenLight: '#eefbf3',
-          greenBorder: '#c8f0d5',
-          greenText: '#14532d',
-          darkBg: '#090e17',
-          darkSurface: '#0f1726',
-          darkCard: '#131d2e',
-          lightBg: '#e8ecf2',
+          green: '#FF6A00',
+          greenHover: '#E85E00',
+          greenLight: '#FFF2E8',
+          greenBorder: '#FFD1AD',
+          greenText: '#7A2E00',
+          orange: '#FF6A00',
+          orangeLight: '#FFBA3D',
+          navy: '#0B1320',
+          neutral: '#6B7280',
+          offWhite: '#F6F7F5',
+          darkBg: '#0B1320',
+          darkSurface: '#111C2A',
+          darkCard: '#182433',
+          lightBg: '#F6F7F5',
           50: '#eff6ff',
           100: '#dbeafe',
           200: '#bfdbfe',
@@ -37,7 +42,7 @@ export default {
         }
       },
       fontFamily: {
-        sans: ['"Plus Jakarta Sans"', 'Inter', 'system-ui', 'sans-serif'],
+        sans: ['Montserrat', 'system-ui', 'sans-serif'],
         plate: ['"FE-Schrift"', 'Impact', '"Arial Black"', 'sans-serif'],
         mono: ['"JetBrains Mono"', 'monospace'],
       },

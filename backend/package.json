@@ -1,0 +1,35 @@
+{
+  "name": "projeto-benz-backend",
+  "version": "1.0.0",
+  "description": "DNAutos Vistorias API com AnyCar e Mercado Pago",
+  "main": "dist/server.js",
+  "engines": { "node": ">=24.0.0" },
+  "scripts": {
+    "dev": "tsx watch src/server.ts",
+    "build": "tsc",
+    "start": "node dist/server.js"
+  },
+  "keywords": [
+    "fipe",
+    "veiculos",
+    "placa",
+    "express",
+    "typescript"
+  ],
+  "author": "DNAutos Vistorias",
+  "license": "ISC",
+  "dependencies": {
+    "axios": "^1.7.9",
+    "cors": "^2.8.5",
+    "dotenv": "^16.4.7",
+    "express": "^4.21.2",
+    "sinesp-api": "^3.0.0"
+  },
+  "devDependencies": {
+    "@types/cors": "^2.8.17",
+    "@types/express": "^4.17.21",
+    "@types/node": "^22.13.4",
+    "tsx": "^4.19.2",
+    "typescript": "^5.7.3"
+  }
+}

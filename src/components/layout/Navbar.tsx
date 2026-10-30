@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { ShieldCheck, ChevronDown, History, LogOut } from 'lucide-react';
+import { ChevronDown, History, LogOut } from 'lucide-react';
 import { useAuth } from '../../hooks/useAuth';
 
 interface NavbarProps {
@@ -8,6 +8,7 @@ interface NavbarProps {
   historyCount?: number;
   onResetToHome: () => void;
   onNavigateSection?: (sectionId: string) => void;
+  onOpenAuth?: () => void;
 }
 
 export const Navbar: React.FC<NavbarProps> = ({
@@ -16,6 +17,7 @@ export const Navbar: React.FC<NavbarProps> = ({
   historyCount = 0,
   onResetToHome,
   onNavigateSection,
+  onOpenAuth,
 }) => {
   const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
   const { isAuthenticated, user, logout } = useAuth();
@@ -35,31 +37,17 @@ export const Navbar: React.FC<NavbarProps> = ({
     <header
       className={`w-full transition-colors duration-200 sticky top-0 z-40 ${
         isDark
-          ? 'bg-[#090e17]/95 border-b border-slate-800/80 backdrop-blur-md text-white'
-          : 'bg-white border-b border-slate-200 shadow-sm text-slate-800'
+          ? 'bg-[#0B1320]/95 border-b border-slate-700/70 backdrop-blur-md text-white'
+          : 'bg-[#F6F7F5] border-b border-slate-200 shadow-sm text-slate-800'
       }`}
     >
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-20 flex items-center justify-between">
-        {/* Logotipo Benz Check */}
+        {/* DNAutos Vistorias */}
         <button
           onClick={onResetToHome}
           className="flex items-center gap-3 group text-left focus:outline-none cursor-pointer"
         >
-          <div className="w-10 h-10 rounded-xl bg-gradient-to-tr from-emerald-500 to-teal-400 p-0.5 shadow-md shadow-emerald-500/20 group-hover:scale-105 transition-transform duration-200">
-            <div className="w-full h-full bg-[#090e17] rounded-[10px] flex items-center justify-center">
-              <ShieldCheck className="w-5 h-5 text-emerald-400" />
-            </div>
-          </div>
-          <div>
-            <div className="flex items-center gap-1.5">
-              <span className={`text-lg sm:text-xl font-black tracking-tight ${isDark ? 'text-white' : 'text-slate-900'}`}>
-                BENZ<span className="text-emerald-500">CHECK</span>
-              </span>
-            </div>
-            <p className="text-[10px] tracking-[0.18em] font-bold text-slate-400 uppercase -mt-0.5">
-              CONSULTA VEICULAR
-            </p>
-          </div>
+          <img src="/dnautos-logo.png" alt="DNAutos Vistorias" className="w-48 sm:w-56 h-auto rounded bg-white" />
         </button>
 
         {/* Central Nav Links (Aparece na Home escura) */}
@@ -67,25 +55,25 @@ export const Navbar: React.FC<NavbarProps> = ({
           <nav className="hidden md:flex items-center gap-8 text-sm font-medium text-slate-300">
             <button
               onClick={onResetToHome}
-              className="text-white hover:text-emerald-400 transition-colors cursor-pointer font-semibold relative after:content-[''] after:absolute after:-bottom-1 after:left-0 after:w-full after:h-0.5 after:bg-emerald-400 after:rounded-full"
+              className="text-white hover:text-orange-400 transition-colors cursor-pointer font-semibold relative after:content-[''] after:absolute after:-bottom-1 after:left-0 after:w-full after:h-0.5 after:bg-orange-400 after:rounded-full"
             >
               Home
             </button>
             <button
               onClick={() => onNavigateSection?.('como-funciona')}
-              className="hover:text-emerald-400 transition-colors cursor-pointer text-slate-300"
+              className="hover:text-orange-400 transition-colors cursor-pointer text-slate-300"
             >
               Como funciona
             </button>
             <button
               onClick={() => onNavigateSection?.('servicos')}
-              className="hover:text-emerald-400 transition-colors cursor-pointer text-slate-300"
+              className="hover:text-orange-400 transition-colors cursor-pointer text-slate-300"
             >
               Nossos serviços
             </button>
             <button
               onClick={() => onNavigateSection?.('duvidas')}
-              className="hover:text-emerald-400 transition-colors cursor-pointer text-slate-300"
+              className="hover:text-orange-400 transition-colors cursor-pointer text-slate-300"
             >
               Dúvidas
             </button>
@@ -103,7 +91,7 @@ export const Navbar: React.FC<NavbarProps> = ({
                     onClick={() => setIsUserMenuOpen(!isUserMenuOpen)}
                     className="flex items-center gap-2 px-3 py-2 rounded-xl border border-slate-700 hover:border-slate-600 bg-slate-800/50 transition-colors cursor-pointer text-xs font-semibold text-slate-200"
                   >
-                    <div className="w-6 h-6 rounded-full bg-emerald-500/20 border border-emerald-500/40 flex items-center justify-center text-emerald-400 font-bold text-xs">
+                    <div className="w-6 h-6 rounded-full bg-orange-500/20 border border-orange-500/40 flex items-center justify-center text-orange-400 font-bold text-xs">
                       {userInitial}
                     </div>
                     <span>Olá, {firstName}</span>
@@ -132,18 +120,20 @@ export const Navbar: React.FC<NavbarProps> = ({
                 </div>
               ) : (
                 <div className="flex items-center gap-3">
-                  <span className="hidden sm:inline-block text-[11px] font-semibold text-emerald-400 bg-emerald-500/10 px-2.5 py-1 rounded-full border border-emerald-500/20">
-                    Modo Livre / Sem Cadastro
+                  <span className="hidden sm:inline-block text-[11px] font-semibold text-orange-400 bg-orange-500/10 px-2.5 py-1 rounded-full border border-orange-500/20">
+                    Consulta segura
                   </span>
+
+                  <button onClick={onOpenAuth} className="text-xs sm:text-sm font-bold text-slate-950 bg-orange-400 hover:bg-orange-300 rounded-xl px-4 py-2">Entrar / Criar conta</button>
 
                   <button
                     onClick={onOpenHistory}
                     className="text-xs sm:text-sm font-semibold text-slate-300 hover:text-white transition-colors cursor-pointer px-3 py-2 flex items-center gap-2 rounded-xl bg-slate-800/40 border border-slate-700/60"
                   >
-                    <History className="w-4 h-4 text-emerald-400" />
+                    <History className="w-4 h-4 text-orange-400" />
                     <span>Minhas Consultas</span>
                     {historyCount > 0 && (
-                      <span className="px-1.5 py-0.5 text-[10px] font-bold bg-emerald-500 text-slate-950 rounded-full">
+                      <span className="px-1.5 py-0.5 text-[10px] font-bold bg-orange-500 text-slate-950 rounded-full">
                         {historyCount}
                       </span>
                     )}
@@ -158,7 +148,7 @@ export const Navbar: React.FC<NavbarProps> = ({
                 onClick={() => setIsUserMenuOpen(!isUserMenuOpen)}
                 className="flex items-center gap-2 px-3.5 py-2 rounded-xl bg-slate-100 hover:bg-slate-200/80 border border-slate-200 transition-colors cursor-pointer text-xs sm:text-sm font-semibold text-slate-700"
               >
-                <div className="w-7 h-7 rounded-full bg-emerald-100 border border-emerald-300 flex items-center justify-center text-emerald-800 font-bold text-xs">
+                <div className="w-7 h-7 rounded-full bg-orange-100 border border-orange-300 flex items-center justify-center text-orange-800 font-bold text-xs">
                   {userInitial}
                 </div>
                 <span>Olá, {firstName}</span>

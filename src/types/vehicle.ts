@@ -5,8 +5,8 @@ export interface VehicleBasicInfo {
   brand: string;
   model: string;
   version: string;
-  yearFabrication: number;
-  yearModel: number;
+  yearFabrication: number | null;
+  yearModel: number | null;
   color: string;
   fuel: string;
   city: string;
@@ -14,7 +14,7 @@ export interface VehicleBasicInfo {
   chassisMasked: string;
   renavamMasked: string;
   engineMasked: string;
-  fipeValue: number;
+  fipeValue: number | null;
   fipeCode: string;
 }
 
@@ -32,8 +32,8 @@ export interface CadastralDetails {
   cylinderCapacity: string;
   vehicleType: string;
   segment: string;
-  passengers: number;
-  fipeValue: number;
+  passengers: number | null;
+  fipeValue: number | null;
   fipeCode: string;
   fipeHistory: FipeHistoryItem[];
 }
@@ -50,22 +50,22 @@ export interface DebtItem {
 }
 
 export interface FinancialDetails {
-  hasDebts: boolean;
-  totalDebtsAmount: number;
-  ipvaStatus: 'OK' | 'Pendente' | 'Atrasado';
-  licensingStatus: 'OK' | 'Pendente' | 'Atrasado';
+  hasDebts: boolean | null;
+  totalDebtsAmount: number | null;
+  ipvaStatus: 'OK' | 'Pendente' | 'Atrasado' | 'Não informado';
+  licensingStatus: 'OK' | 'Pendente' | 'Atrasado' | 'Não informado';
   debtsList: DebtItem[];
   gravame: {
-    hasFinancialRestriction: boolean;
+    hasFinancialRestriction: boolean | null;
     financialInstitution?: string;
     inclusionDate?: string;
     contractType?: string;
-    status: 'Quitado' | 'Alienado Fiduciariamente' | 'Reserva de Domínio' | 'Livre';
+    status: 'Quitado' | 'Alienado Fiduciariamente' | 'Reserva de Domínio' | 'Livre' | 'Não informado';
   };
 }
 
 export interface AuctionRecord {
-  hasAuction: boolean;
+  hasAuction: boolean | null;
   auctioneer?: string;
   comitente?: string; // Seguradora, Banco, Detran
   lotNumber?: string;
@@ -78,7 +78,7 @@ export interface AuctionRecord {
 }
 
 export interface AccidentRecord {
-  hasAccident: boolean;
+  hasAccident: boolean | null;
   severity?: 'Leve' | 'Média Monta' | 'Grande Monta / PT' | 'Sem Registros';
   incidentDate?: string;
   repairedByInsurance?: boolean;
@@ -87,26 +87,26 @@ export interface AccidentRecord {
 
 export interface RiskDetails {
   overallRiskLevel: RiskLevel;
-  riskScore: number; // 0 - 100 (100 = 100% seguro)
+  riskScore: number | null; // null when the provider does not supply a score
   riskSummary: string;
   theftRecord: {
-    isStolenOrTheftAlert: boolean;
-    status: 'Sem Alerta de Furto/Roubo' | 'Alerta Ativo no SINESP' | 'Recuperado';
+    isStolenOrTheftAlert: boolean | null;
+    status: 'Sem Alerta de Furto/Roubo' | 'Alerta Ativo no SINESP' | 'Recuperado' | 'Não informado';
   };
   judicialRestrictions: {
-    hasRestriction: boolean;
-    type?: 'Renajud - Penhora' | 'Renajud - Transferência' | 'Sem Restrição Judicial';
+    hasRestriction: boolean | null;
+    type?: 'Renajud - Penhora' | 'Renajud - Transferência' | 'Sem Restrição Judicial' | 'Não informado';
     courtName?: string;
   };
   auction: AuctionRecord;
   accident: AccidentRecord;
   recall: {
-    hasPendingRecall: boolean;
+    hasPendingRecall: boolean | null;
     campaignName?: string;
     urgency?: 'Baixa' | 'Alta';
   };
   tamperingAlert: {
-    hasMileageTamperingSuspicion: boolean;
+    hasMileageTamperingSuspicion: boolean | null;
     notes?: string;
   };
 }
@@ -128,12 +128,12 @@ export interface MileageHistoryItem {
 }
 
 export interface OwnersAndMileageDetails {
-  totalOwnersCount: number;
+  totalOwnersCount: number | null;
   currentOwnerType: string;
   ownerHistory: OwnerHistoryItem[];
   mileageHistory: MileageHistoryItem[];
-  estimatedCurrentMileage: number;
-  usageProfile: 'Uso Particular Severo' | 'Uso Particular Moderado' | 'Frota / Locadora' | 'Uso Misto';
+  estimatedCurrentMileage: number | null;
+  usageProfile: 'Uso Particular Severo' | 'Uso Particular Moderado' | 'Frota / Locadora' | 'Uso Misto' | 'Não informado';
 }
 
 export interface FullVehicleReport {
@@ -144,15 +144,7 @@ export interface FullVehicleReport {
   financial: FinancialDetails;
   risks: RiskDetails;
   ownersMileage: OwnersAndMileageDetails;
-}
-
-export interface PixPaymentResponse {
-  paymentId: string;
-  plate: string;
-  amount: number;
-  pixCode: string;
-  qrCodeUrl: string;
-  expiresAt: string;
+  providerData?: Record<string, unknown>;
 }
 
 export interface InspectionBookingRequest {

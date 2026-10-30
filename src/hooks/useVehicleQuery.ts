@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { vehicleApi, API_BASE_URL } from '../services/api';
 import { FipeVehicleData, VehicleKind } from '../services/fipeService';
 import { buildReportFromFipe } from '../utils/fipeReportBuilder';
+import { authService } from '../services/authService';
 import {
   VehicleBasicInfo,
   FullVehicleReport,
@@ -21,29 +22,31 @@ export function useVehicleQuery() {
 
   // Carrega histórico local ao inicializar
   useEffect(() => {
-    const loaded = vehicleApi.getLocalHistory();
-    setHistory(loaded);
+    if (authService.isAuthenticated()) vehicleApi.getAccountHistory().then(setHistory).catch(() => setHistory([]));
+    else setHistory(vehicleApi.getLocalHistory());
   }, []);
 
   /**
    * Busca por placa — chama o backend da aplicação
    */
-  const handleSearch = async (targetPlate?: string) => {
+  const handleSearch = async (targetPlate?: string, reportToken?: string): Promise<boolean> => {
     const searchTarget = targetPlate || plate;
     const clean = searchTarget.toUpperCase().replace(/[^A-Z0-9]/g, '');
-    if (clean.length !== 7) return;
+    if (clean.length !== 7) return false;
 
     setIsLoading(true);
     setError(null);
 
     try {
-      const report = await vehicleApi.getFullReport(clean);
+      if (!reportToken) throw new Error('O relatório só pode ser aberto após o pagamento ser confirmado.');
+      const report = await vehicleApi.getFullReport(clean, reportToken);
       setPlate(clean);
       setBasicInfo(report.basicInfo);
       setFullReport(report);
       setStep('REPORT');
-      setHistory(vehicleApi.getLocalHistory());
+      setHistory(authService.isAuthenticated() ? await vehicleApi.getAccountHistory() : vehicleApi.getLocalHistory());
       window.scrollTo({ top: 0, behavior: 'smooth' });
+      return true;
     } catch (err: any) {
       let message = 'Não foi possível consultar esta placa. Tente novamente.';
       if (
@@ -58,6 +61,7 @@ export function useVehicleQuery() {
         message = err.message;
       }
       setError(message);
+      return false;
     } finally {
       setIsLoading(false);
     }
@@ -94,6 +98,11 @@ export function useVehicleQuery() {
   const handleClearHistory = () => {
     localStorage.removeItem('benzcheck_history');
     setHistory([]);
+    if (authService.isAuthenticated()) void vehicleApi.clearAccountHistory();
+  };
+
+  const refreshHistory = async () => {
+    if (authService.isAuthenticated()) setHistory(await vehicleApi.getAccountHistory());
   };
 
   /**
@@ -122,6 +131,7 @@ export function useVehicleQuery() {
     handleFipeReport,
     handleSelectReportFromHistory,
     handleClearHistory,
+    refreshHistory,
     handleResetToSearch,
   };
 }

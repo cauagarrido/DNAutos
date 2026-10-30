@@ -89,7 +89,7 @@ export const InspectionModal: React.FC<InspectionModalProps> = ({
     >
       {protocol ? (
         <div className="text-center py-6 space-y-4">
-          <div className="w-14 h-14 bg-emerald-500/20 text-emerald-400 rounded-full flex items-center justify-center mx-auto">
+          <div className="w-14 h-14 bg-orange-500/20 text-orange-400 rounded-full flex items-center justify-center mx-auto">
             <CheckCircle2 className="w-8 h-8" />
           </div>
           
@@ -114,7 +114,7 @@ export const InspectionModal: React.FC<InspectionModalProps> = ({
           
           <div className="p-3 bg-blue-500/10 border border-blue-500/20 rounded-xl text-blue-300 flex items-center gap-2">
             <Sparkles className="w-4 h-4 text-blue-400 flex-shrink-0" />
-            <span>Desconto exclusivo BenzCheck de 15% aplicado na vistoria física da placa <strong>{plate}</strong>.</span>
+            <span>Condição especial DNAutos aplicada à vistoria física da placa <strong>{plate}</strong>.</span>
           </div>
 
           <div className="space-y-1.5">
