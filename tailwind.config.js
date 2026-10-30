@@ -23,6 +23,8 @@ export default {
           darkSurface: '#111C2A',
           darkCard: '#182433',
           lightBg: '#F6F7F5',
+          glass: 'rgba(255, 255, 255, 0.68)',
+          glassBorder: 'rgba(255, 255, 255, 0.86)',
           50: '#eff6ff',
           100: '#dbeafe',
           200: '#bfdbfe',

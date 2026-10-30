@@ -1,20 +1,9 @@
 import React, { useState } from 'react';
-import {
-  FileText,
-  ShieldCheck,
-  Crosshair,
-  Shield,
-  ArrowRight,
-  Lock,
-  AlertCircle,
-  ScanLine,
-  ListFilter,
-} from 'lucide-react';
+import { FileText, ShieldCheck, Crosshair, Shield, ArrowRight, Lock, AlertCircle, ScanLine, ListFilter } from 'lucide-react';
 import { FipeSearchForm } from './FipeSearchForm';
 import { FipeVehicleData, VehicleKind } from '../../services/fipeService';
 
 type SearchTab = 'placa' | 'fipe';
-
 interface HeroSearchProps {
   plate: string;
   setPlate: (plate: string) => void;
@@ -24,196 +13,110 @@ interface HeroSearchProps {
   error?: string | null;
 }
 
-export const HeroSearch: React.FC<HeroSearchProps> = ({
-  plate,
-  setPlate,
-  onSearch,
-  onFipeResult,
-  isLoading,
-  error,
-}) => {
+export const HeroSearch: React.FC<HeroSearchProps> = ({ plate, setPlate, onSearch, onFipeResult, isLoading, error }) => {
   const [tab, setTab] = useState<SearchTab>('placa');
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => setPlate(e.target.value.toUpperCase().replace(/[^A-Z0-9]/g, '').slice(0, 7));
 
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const raw = e.target.value.toUpperCase().replace(/[^A-Z0-9]/g, '').slice(0, 7);
-    setPlate(raw);
-  };
-
-  const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
-    if (e.key === 'Enter') onSearch();
-  };
+  const features = [
+    { icon: <FileText className="w-[18px] h-[18px]" />, title: 'Histórico', detail: 'veicular' },
+    { icon: <ShieldCheck className="w-[18px] h-[18px]" />, title: 'Situação', detail: 'documental' },
+    { icon: <Crosshair className="w-[18px] h-[18px]" />, title: 'Quilometragem', detail: 'e manutenção' },
+    { icon: <Shield className="w-[18px] h-[18px]" />, title: 'Leilão', detail: 'e sinistros' },
+  ];
 
   return (
-    <div className="w-full relative overflow-hidden bg-[#0B1320] text-white">
-      <div className="absolute inset-0 bg-cover bg-center opacity-40" style={{ backgroundImage: "url('/dnautos-hero.png')" }} />
-      <div className="absolute inset-0 bg-gradient-to-r from-[#0B1320] via-[#0B1320]/85 to-[#0B1320]/25" />
-      {/* Luz ambiente de fundo */}
-      <div className="absolute top-1/4 left-1/2 -translate-x-1/2 w-[800px] h-[450px] bg-orange-500/10 blur-[150px] rounded-full pointer-events-none -z-10" />
-      <div className="absolute top-10 right-10 w-[500px] h-[350px] bg-cyan-500/10 blur-[140px] rounded-full pointer-events-none -z-10" />
+    <section className="relative isolate overflow-hidden bg-[#F6F7F5] text-[#0B1320]">
+      <div className="absolute inset-0 -z-20 bg-cover bg-[center_58%] opacity-[0.2]" style={{ backgroundImage: "url('/dnautos-hero-light.png')" }} />
+      <div className="absolute inset-0 -z-10 bg-gradient-to-r from-[#F6F7F5]/95 via-[#F6F7F5]/80 to-[#F6F7F5]/45" />
+      <div className="pointer-events-none absolute -top-40 -left-32 -z-10 h-[32rem] w-[32rem] rounded-full bg-white/80 blur-[100px]" />
+      <div className="pointer-events-none absolute top-40 right-[-8rem] -z-10 h-[25rem] w-[25rem] rounded-full bg-orange-200/35 blur-[110px]" />
 
-      <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-8 pb-16 lg:pt-14 lg:pb-24">
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 lg:gap-8 items-start">
-
-          {/* Coluna Esquerda: Textos & Pílulas */}
-          <div className="lg:col-span-6 space-y-6 text-left lg:pt-6">
-            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-orange-500/10 border border-orange-500/30 text-orange-400 text-xs font-bold tracking-wide">
-              <span className="w-2 h-2 rounded-full bg-orange-400 animate-pulse" />
-              DNAUTOS VISTORIAS · HISTÓRICO VEICULAR
-            </div>
-
-            <h1 className="text-4xl sm:text-5xl lg:text-[54px] font-black tracking-tight leading-[1.12] text-white">
-              Mais informação.<br />
-              Mais <span className="text-[#FF6A00]">segurança</span><br />
-              para o seu próximo destino.
-            </h1>
-
-            <p className="text-slate-300 text-sm sm:text-base leading-relaxed max-w-xl font-normal">
-              O DNA completo do seu veículo. Consulte o histórico, a situação documental, a quilometragem e muito mais antes de decidir.
-            </p>
-
-            {/* Pílulas de recursos */}
-            <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5 pt-2">
-              {[
-                { icon: <FileText className="w-4 h-4" />, label: 'Histórico\nveicular' },
-                { icon: <ShieldCheck className="w-4 h-4" />, label: 'Vistoria\ncautelar' },
-                { icon: <Crosshair className="w-4 h-4" />, label: 'Tabela\nFIPE real' },
-                { icon: <Shield className="w-4 h-4" />, label: 'Proteção\n(seguro)' },
-              ].map((item, i) => (
-                <div
-                  key={i}
-                  className="flex flex-col items-center justify-center p-3 rounded-xl bg-[#0f1726]/80 border border-slate-800/80 hover:border-orange-500/30 transition-colors text-center group"
-                >
-                  <div className="w-8 h-8 rounded-lg bg-orange-500/10 flex items-center justify-center text-orange-400 mb-1.5 group-hover:scale-110 transition-transform">
-                    {item.icon}
-                  </div>
-                  <span className="text-[11px] font-semibold text-slate-300 leading-tight whitespace-pre-line">
-                    {item.label}
-                  </span>
-                </div>
-              ))}
-            </div>
+      <div className="mx-auto grid max-w-7xl grid-cols-1 items-center gap-10 px-4 pb-14 pt-10 sm:px-6 lg:grid-cols-12 lg:gap-12 lg:px-8 lg:pb-20 lg:pt-16">
+        <div className="lg:col-span-6">
+          <div className="mb-6 inline-flex items-center gap-2 rounded-full border border-white/90 bg-white/65 px-3.5 py-2 text-[10px] font-bold tracking-[0.17em] text-slate-600 shadow-sm backdrop-blur-xl sm:text-[11px]">
+            <span className="h-2 w-2 rounded-full bg-[#FF6A00]" /> DNAUTOS VISTORIAS · INFORMAÇÃO VEICULAR
           </div>
 
-          {/* Coluna Direita: Card de Consulta com Abas */}
-          <div className="lg:col-span-6 flex flex-col items-center lg:items-end justify-start">
-            <div className="w-full max-w-md rounded-2xl bg-[#0d1624]/90 backdrop-blur-xl border border-slate-700/80 shadow-[0_20px_50px_rgba(0,0,0,0.6)] overflow-hidden">
+          <h1 className="max-w-2xl text-[2.65rem] font-extrabold leading-[1.04] tracking-[-0.055em] text-[#0B1320] sm:text-6xl lg:text-[4.4rem]">
+            Mais informação.<br />
+            Mais <span className="text-[#F06400]">segurança</span><br />
+            para o seu próximo destino.
+          </h1>
+          <p className="mt-6 max-w-xl text-sm leading-7 text-slate-600 sm:text-base">
+            O DNA completo do seu veículo. Consulte histórico, situação documental, quilometragem e muito mais antes de decidir.
+          </p>
 
-              {/* Abas */}
-              <div className="flex border-b border-slate-700/80">
-                <button
-                  type="button"
-                  onClick={() => setTab('fipe')}
-                  className={`flex-1 flex items-center justify-center gap-2 py-3.5 text-xs font-bold transition-all cursor-pointer ${
-                    tab === 'fipe'
-                      ? 'text-orange-400 border-b-2 border-orange-400 bg-orange-500/5'
-                      : 'text-slate-400 hover:text-slate-200'
-                  }`}
-                >
-                  <ListFilter className="w-3.5 h-3.5" />
-                  Tabela FIPE
+          <div className="mt-9 grid grid-cols-2 gap-3 sm:grid-cols-4 lg:max-w-2xl">
+            {features.map((feature) => (
+              <div key={feature.title} className="group rounded-2xl border border-white/90 bg-white/55 px-3 py-4 text-center shadow-[0_8px_28px_rgba(21,35,52,.06)] backdrop-blur-xl transition duration-200 hover:-translate-y-1 hover:bg-white/85">
+                <div className="mx-auto mb-2 flex h-9 w-9 items-center justify-center rounded-xl bg-orange-50 text-[#F06400] ring-1 ring-orange-100/80">{feature.icon}</div>
+                <span className="block text-[11px] font-bold text-slate-800">{feature.title}</span>
+                <span className="block text-[10px] text-slate-500">{feature.detail}</span>
+              </div>
+            ))}
+          </div>
+
+          <div className="mt-7 flex items-center gap-2 text-[11px] font-medium text-slate-500">
+            <Lock className="h-3.5 w-3.5 text-[#F06400]" /> Conta protegida · Pagamento confirmado antes da liberação do relatório
+          </div>
+        </div>
+
+        <div className="lg:col-span-6 lg:pl-4">
+          <div className="mx-auto w-full max-w-[31rem] rounded-[2rem] border border-white/90 bg-white/65 p-2 shadow-[0_30px_100px_rgba(22,34,50,.14)] backdrop-blur-2xl ring-1 ring-slate-900/[0.035]">
+            <div className="overflow-hidden rounded-[1.55rem] bg-white/75">
+              <div className="flex items-center justify-between border-b border-slate-200/70 px-5 py-4 sm:px-6">
+                <div>
+                  <p className="text-[10px] font-bold uppercase tracking-[0.18em] text-[#E65B00]">Consulta segura</p>
+                  <h2 className="mt-1 text-lg font-bold tracking-tight text-[#0B1320]">Descubra o histórico do veículo</h2>
+                </div>
+                <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-orange-50 text-[#F06400] ring-1 ring-orange-100"><ScanLine className="h-5 w-5" /></div>
+              </div>
+
+              <div className="grid grid-cols-2 gap-1 rounded-full border border-slate-200/70 bg-slate-100/75 p-1 mx-5 mt-5 sm:mx-6">
+                <button type="button" onClick={() => setTab('placa')} className={`flex items-center justify-center gap-2 rounded-full px-3 py-2.5 text-xs font-bold transition ${tab === 'placa' ? 'bg-white text-[#0B1320] shadow-sm ring-1 ring-slate-200/60' : 'text-slate-500 hover:text-slate-800'}`}>
+                  <ScanLine className="h-3.5 w-3.5" /> Por placa
                 </button>
-                <button
-                  type="button"
-                  onClick={() => setTab('placa')}
-                  className={`flex-1 flex items-center justify-center gap-2 py-3.5 text-xs font-bold transition-all cursor-pointer ${
-                    tab === 'placa'
-                      ? 'text-orange-400 border-b-2 border-orange-400 bg-orange-500/5'
-                      : 'text-slate-400 hover:text-slate-200'
-                  }`}
-                >
-                  <ScanLine className="w-3.5 h-3.5" />
-                  Por Placa
+                <button type="button" onClick={() => setTab('fipe')} className={`flex items-center justify-center gap-2 rounded-full px-3 py-2.5 text-xs font-bold transition ${tab === 'fipe' ? 'bg-white text-[#0B1320] shadow-sm ring-1 ring-slate-200/60' : 'text-slate-500 hover:text-slate-800'}`}>
+                  <ListFilter className="h-3.5 w-3.5" /> Tabela FIPE
                 </button>
               </div>
 
-              {/* Conteúdo da aba */}
-              <div className="p-6">
-
-                {/* ABA FIPE */}
-                {tab === 'fipe' && (
+              <div className="p-5 sm:p-6">
+                {tab === 'placa' ? (
                   <div>
-                    <div className="mb-5">
-                      <h3 className="text-base font-bold text-white tracking-tight">
-                        Consultar Tabela FIPE
-                      </h3>
-                      <p className="text-xs text-slate-400 mt-0.5">
-                        Consulte o valor atualizado da Tabela FIPE.
-                      </p>
+                    <label htmlFor="plate-input" className="mb-2 block text-xs font-semibold text-slate-600">Placa do veículo</label>
+                    <div className="flex items-center overflow-hidden rounded-2xl border border-slate-200 bg-white p-1.5 shadow-inner shadow-slate-100 transition focus-within:border-orange-300 focus-within:ring-4 focus-within:ring-orange-100/70">
+                      <div className="flex h-12 w-12 shrink-0 flex-col items-center justify-center rounded-xl bg-[#003399] text-white">
+                        <span className="text-[8px] leading-none text-yellow-300">★</span><span className="mt-0.5 text-[10px] font-black tracking-wider">BR</span>
+                      </div>
+                      <input id="plate-input" type="text" value={plate} onChange={handleInputChange} onKeyDown={(e) => e.key === 'Enter' && onSearch()} placeholder="ABC1D23" maxLength={7} aria-label="Digite a placa do veículo" className="min-w-0 flex-1 bg-transparent px-3 text-center font-mono text-2xl font-black uppercase tracking-[0.22em] text-[#0B1320] outline-none placeholder:text-slate-300 sm:text-3xl" />
+                      <span className="mr-3 hidden rounded-lg bg-slate-50 px-2 py-1 text-[9px] font-semibold text-slate-400 sm:block">MERCOSUL</span>
                     </div>
+
+                    <button type="button" onClick={() => onSearch()} disabled={isLoading || plate.length < 7} id="search-plate-btn" className="mt-4 flex w-full items-center justify-center gap-2 rounded-2xl bg-gradient-to-b from-[#FF8126] to-[#F06400] py-3.5 text-sm font-bold text-white shadow-[0_9px_20px_rgba(240,100,0,.23)] ring-1 ring-orange-600/15 transition hover:-translate-y-0.5 hover:shadow-[0_14px_26px_rgba(240,100,0,.27)] active:translate-y-0 disabled:cursor-not-allowed disabled:opacity-45">
+                      {isLoading ? <span className="h-4 w-4 animate-spin rounded-full border-2 border-white border-t-transparent" /> : <><ArrowRight className="h-4 w-4" /> Consultar veículo</>}
+                    </button>
+
+                    <div className="mt-4 flex items-center justify-center gap-2 text-center text-[10px] leading-5 text-slate-500">
+                      <Lock className="h-3.5 w-3.5 shrink-0 text-slate-400" /> Faça login e conclua o pagamento para liberar o relatório completo.
+                    </div>
+                    {error && <div className="mt-4 flex items-start gap-2 rounded-xl border border-rose-200/80 bg-rose-50/80 p-3 text-xs font-medium text-rose-700"><AlertCircle className="mt-0.5 h-4 w-4 shrink-0" /><span>{error}</span></div>}
+                  </div>
+                ) : (
+                  <div>
+                    <h3 className="mb-1 text-base font-bold text-[#0B1320]">Consultar Tabela FIPE</h3>
+                    <p className="mb-4 text-xs text-slate-500">Pesquise por categoria, marca, modelo e ano.</p>
                     <FipeSearchForm onResult={onFipeResult} isLoading={isLoading} />
                   </div>
                 )}
-
-                {/* ABA PLACA */}
-                {tab === 'placa' && (
-                  <div>
-                    <div className="mb-4">
-                      <h3 className="text-base font-bold text-white tracking-tight">
-                        Consultar o histórico
-                      </h3>
-                      <p className="text-xs text-slate-400 mt-0.5">
-                        Digite a placa para iniciar uma consulta segura.
-                      </p>
-                    </div>
-
-                    {/* Input placa Mercosul */}
-                    <div className="relative flex items-center bg-white rounded-xl p-1 shadow-inner border-2 border-slate-200">
-                      <div className="bg-[#003399] text-white px-2.5 py-2.5 rounded-l-lg flex flex-col items-center justify-center select-none">
-                        <span className="text-[7px] text-yellow-300 font-bold leading-none">★</span>
-                        <span className="text-[10px] font-black tracking-wider leading-none mt-0.5">BR</span>
-                      </div>
-                      <input
-                        type="text"
-                        value={plate}
-                        onChange={handleInputChange}
-                        onKeyDown={handleKeyDown}
-                        placeholder="ABC1D23"
-                        maxLength={7}
-                        id="plate-input"
-                        aria-label="Digite a placa do veículo"
-                        className="w-full bg-transparent text-slate-900 font-black tracking-[0.2em] font-mono text-2xl sm:text-3xl text-center uppercase focus:outline-none placeholder:text-slate-300 px-2"
-                      />
-                    </div>
-
-                    {/* Botão Principal Consultar Placa */}
-                    <button
-                      type="button"
-                      onClick={() => onSearch()}
-                      disabled={isLoading || plate.length < 7}
-                      id="search-plate-btn"
-                      className="w-full mt-4 py-3 rounded-xl bg-orange-500 hover:bg-orange-400 disabled:opacity-40 disabled:cursor-not-allowed text-slate-950 font-black text-sm tracking-wide transition-all hover:scale-[1.02] active:scale-[0.98] shadow-lg shadow-orange-500/25 cursor-pointer flex items-center justify-center gap-2"
-                    >
-                      {isLoading ? (
-                        <div className="w-4 h-4 border-2 border-slate-900 border-t-transparent rounded-full animate-spin" />
-                      ) : (
-                        <>
-                          <ArrowRight className="w-4 h-4 stroke-[2.5]" />
-                          Consultar veículo {plate ? `(${plate})` : ''}
-                        </>
-                      )}
-                    </button>
-
-                    {/* Erro da API */}
-                    {error && (
-                      <div className="flex items-start gap-2 mt-3 p-3 bg-red-500/10 border border-red-500/30 rounded-xl text-red-300 text-xs font-medium">
-                        <AlertCircle className="w-4 h-4 flex-shrink-0 mt-0.5 text-red-400" />
-                        <span>{error}</span>
-                      </div>
-                    )}
-
-                    <div className="flex items-center justify-center gap-1.5 mt-4 text-[11px] text-slate-400 font-medium">
-                      <Lock className="w-3.5 h-3.5 text-orange-400" />
-                      <span>Pagamento confirmado antes de liberar o relatório</span>
-                    </div>
-                  </div>
-                )}
-
+              </div>
+              <div className="flex items-center justify-center gap-2 border-t border-slate-200/60 bg-white/45 py-3 text-[10px] font-medium text-slate-400">
+                <ShieldCheck className="h-3.5 w-3.5 text-[#F06400]" /> DNAutos Vistorias · Informação para decidir com confiança
               </div>
             </div>
           </div>
-
         </div>
       </div>
-    </div>
+    </section>
   );
 };

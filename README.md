@@ -22,6 +22,8 @@ O banco SQLite é criado em `backend/data/benzcheck.sqlite`. Em produção, conf
 
 ## Integrações pendentes de credenciais
 
+Depois de assinar o plano empresarial, siga o [guia passo a passo para conectar a AnyCar](ANYCAR_SETUP.md). Ele explica quais dados solicitar ao fornecedor, como configurar o backend e como validar a resposta real antes de publicar.
+
 O backend está estruturado para a API REST empresarial AnyCar (`POST /api/consultar`, header `x-api-key`) e aceita um ou mais tipos de consulta configurados em `ANYCAR_REPORT_TYPES`. Configure apenas tipos cobertos pelo contrato e crédito empresarial contratado; cada chamada pode ter cobrança própria. O schema público dá exemplos de dados cadastrais, FIPE, leilão, sinistro e gravame, mas o contrato/OpenAPI e a composição exata do relatório da conta são necessários para fechar o mapeamento de produção.
 
 Para pagamento, foi escolhido Mercado Pago Checkout Pro: `MERCADO_PAGO_ACCESS_TOKEN`, `MERCADO_PAGO_WEBHOOK_SECRET`, `REPORT_PRICE`, `PUBLIC_APP_URL` e `PUBLIC_API_URL` precisam ser configurados. O gateway só aceita o valor definido pelo backend; não é enviado pelo navegador.

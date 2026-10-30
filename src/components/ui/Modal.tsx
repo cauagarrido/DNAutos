@@ -47,22 +47,22 @@ export const Modal: React.FC<ModalProps> = ({
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 sm:p-6 overflow-y-auto">
       {/* Backdrop */}
       <div
-        className="fixed inset-0 bg-black/75 backdrop-blur-md transition-opacity animate-in fade-in duration-200"
+        className="fixed inset-0 bg-slate-900/25 backdrop-blur-md transition-opacity animate-in fade-in duration-200"
         onClick={onClose}
       />
 
       {/* Dialog */}
       <div
-        className={`relative w-full ${maxWidthStyles[maxWidth]} bg-slate-900 border border-slate-700/80 rounded-2xl shadow-2xl overflow-hidden z-10 animate-in zoom-in-95 duration-200`}
+        className={`glass-panel glass-sheen relative w-full ${maxWidthStyles[maxWidth]} rounded-[1.75rem] shadow-[0_28px_90px_rgba(20,35,52,.2)] overflow-hidden z-10 animate-in zoom-in-95 duration-200 text-slate-800`}
         role="dialog"
         aria-modal="true"
       >
         {/* Header */}
-        <div className="flex items-center justify-between px-6 py-4 border-b border-slate-800 bg-slate-900/80">
-          <div className="text-lg font-bold text-white">{title}</div>
+        <div className="flex items-center justify-between px-6 py-4 border-b border-white/70 bg-white/35">
+          <div className="text-lg font-bold text-[#0B1320]">{title}</div>
           <button
             onClick={onClose}
-            className="p-2 text-slate-400 hover:text-white rounded-lg hover:bg-slate-800 transition-colors"
+            className="p-2 text-slate-500 hover:text-slate-900 rounded-xl hover:bg-white/70 transition-colors"
             aria-label="Fechar"
           >
             <X className="w-5 h-5" />

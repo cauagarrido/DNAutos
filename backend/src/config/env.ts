@@ -6,7 +6,7 @@ dotenv.config({ path: path.resolve(__dirname, '../../.env') });
 export const env = {
   port: parseInt(process.env.PORT || '3000', 10),
   nodeEnv: process.env.NODE_ENV || 'development',
-  fipeApiUrl: process.env.FIPE_API_URL || 'https://fipe.api.br/api/v2',
+  fipeApiUrl: process.env.FIPE_API_URL || 'https://fipe.parallelum.com.br/api/v2',
   fipeApiKey: process.env.FIPE_API_KEY || '',
   anycarApiUrl: process.env.ANYCAR_API_URL || '',
   anycarApiKey: process.env.ANYCAR_API_KEY || '',

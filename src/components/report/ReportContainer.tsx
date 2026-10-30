@@ -83,7 +83,7 @@ export const ReportContainer: React.FC<ReportContainerProps> = ({
   const strokeDashoffset = circumference - (scorePercent / 100) * circumference;
 
   return (
-    <div className="w-full min-h-screen bg-[#e8ecf2] text-slate-800 pb-20 animate-in fade-in duration-300">
+    <div className="w-full min-h-screen bg-transparent text-slate-800 pb-20 animate-in fade-in duration-300">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-6 space-y-6">
 
         {/* 1. Botão Superior de Retorno (<- Voltar) */}
@@ -107,8 +107,8 @@ export const ReportContainer: React.FC<ReportContainerProps> = ({
             onClick={() => setActiveTab('historico')}
             className={`px-5 py-2.5 rounded-full text-xs sm:text-sm font-semibold transition-all cursor-pointer whitespace-nowrap ${
               activeTab === 'historico'
-                ? 'bg-slate-900 text-white shadow-sm'
-                : 'text-slate-700 hover:text-slate-900 bg-white/70 hover:bg-white border border-slate-200'
+                ? 'bg-white/90 text-[#0B1320] shadow-sm ring-1 ring-white'
+                : 'text-slate-600 hover:text-slate-900 bg-white/45 hover:bg-white/75 border border-white/80'
             }`}
           >
             Histórico veicular
@@ -121,8 +121,8 @@ export const ReportContainer: React.FC<ReportContainerProps> = ({
             }}
             className={`px-5 py-2.5 rounded-full text-xs sm:text-sm font-semibold transition-all cursor-pointer whitespace-nowrap ${
               activeTab === 'documentacao'
-                ? 'bg-slate-900 text-white shadow-sm'
-                : 'text-slate-700 hover:text-slate-900 bg-white/70 hover:bg-white border border-slate-200'
+                ? 'bg-white/90 text-[#0B1320] shadow-sm ring-1 ring-white'
+                : 'text-slate-600 hover:text-slate-900 bg-white/45 hover:bg-white/75 border border-white/80'
             }`}
           >
             Documentação
@@ -135,8 +135,8 @@ export const ReportContainer: React.FC<ReportContainerProps> = ({
             }}
             className={`px-5 py-2.5 rounded-full text-xs sm:text-sm font-semibold transition-all cursor-pointer whitespace-nowrap ${
               activeTab === 'vistoria'
-                ? 'bg-slate-900 text-white shadow-sm'
-                : 'text-slate-700 hover:text-slate-900 bg-white/70 hover:bg-white border border-slate-200'
+                ? 'bg-white/90 text-[#0B1320] shadow-sm ring-1 ring-white'
+                : 'text-slate-600 hover:text-slate-900 bg-white/45 hover:bg-white/75 border border-white/80'
             }`}
           >
             Vistoria cautelar
@@ -149,8 +149,8 @@ export const ReportContainer: React.FC<ReportContainerProps> = ({
             }}
             className={`px-5 py-2.5 rounded-full text-xs sm:text-sm font-semibold transition-all cursor-pointer whitespace-nowrap ${
               activeTab === 'resumo'
-                ? 'bg-slate-900 text-white shadow-sm'
-                : 'text-slate-700 hover:text-slate-900 bg-white/70 hover:bg-white border border-slate-200'
+                ? 'bg-white/90 text-[#0B1320] shadow-sm ring-1 ring-white'
+                : 'text-slate-600 hover:text-slate-900 bg-white/45 hover:bg-white/75 border border-white/80'
             }`}
           >
             Resumo
@@ -161,7 +161,7 @@ export const ReportContainer: React.FC<ReportContainerProps> = ({
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 pt-2">
           
           {/* Card 1: "Dados do veículo" */}
-          <div className="bg-white rounded-2xl border border-slate-200/90 shadow-sm p-6 flex flex-col justify-between">
+          <div className="glass-card rounded-2xl p-6 flex flex-col justify-between">
             <div>
               <div className="flex items-center gap-2 mb-5">
                 <div className="w-7 h-7 rounded-lg bg-slate-100 text-slate-700 flex items-center justify-center">
@@ -211,7 +211,7 @@ export const ReportContainer: React.FC<ReportContainerProps> = ({
             <div className="pt-4 mt-2 border-t border-slate-100">
               <button
                 onClick={() => setIsAllDataModalOpen(true)}
-                className="text-xs font-semibold text-blue-600 hover:text-blue-700 flex items-center gap-1 cursor-pointer"
+                className="text-xs font-semibold text-orange-600 hover:text-orange-700 flex items-center gap-1 cursor-pointer"
               >
                 <span>Ver todos os dados</span>
                 <span className="text-sm">→</span>
@@ -220,7 +220,7 @@ export const ReportContainer: React.FC<ReportContainerProps> = ({
           </div>
 
           {/* Card 2: "Principais informações" */}
-          <div className="bg-white rounded-2xl border border-slate-200/90 shadow-sm p-6 flex flex-col justify-between">
+          <div className="glass-card rounded-2xl p-6 flex flex-col justify-between">
             <div>
               <div className="flex items-center gap-2 mb-5">
                 <div className="w-7 h-7 rounded-lg bg-slate-100 text-slate-700 flex items-center justify-center">
@@ -318,7 +318,7 @@ export const ReportContainer: React.FC<ReportContainerProps> = ({
             <div className="pt-4 mt-2 border-t border-slate-100">
               <button
                 onClick={() => setIsFullAuditModalOpen(true)}
-                className="text-xs font-semibold text-blue-600 hover:text-blue-700 flex items-center gap-1 cursor-pointer"
+                className="text-xs font-semibold text-orange-600 hover:text-orange-700 flex items-center gap-1 cursor-pointer"
               >
                 <span>Ver relatório completo</span>
                 <span className="text-sm">→</span>
@@ -330,8 +330,8 @@ export const ReportContainer: React.FC<ReportContainerProps> = ({
           <div className="space-y-4 flex flex-col justify-between">
             
             {/* Card 1: Quer mais segurança? */}
-            <div className="bg-[#f0f6fe] border border-blue-100 rounded-2xl p-5 shadow-xs">
-              <div className="w-8 h-8 rounded-lg bg-blue-100 text-blue-600 flex items-center justify-center mb-2.5">
+            <div className="bg-[#f0f6fe] border border-orange-100 rounded-2xl p-5 shadow-xs">
+              <div className="w-8 h-8 rounded-lg bg-orange-100 text-orange-600 flex items-center justify-center mb-2.5">
                 <Search className="w-4 h-4" />
               </div>
               <h4 className="text-sm font-bold text-slate-900">
@@ -342,15 +342,15 @@ export const ReportContainer: React.FC<ReportContainerProps> = ({
               </p>
               <button
                 onClick={() => setIsInspectionModalOpen(true)}
-                className="w-full py-2.5 px-4 rounded-xl border border-blue-400 bg-white hover:bg-blue-50 text-blue-700 font-bold text-xs shadow-xs transition-colors cursor-pointer"
+                className="w-full py-2.5 px-4 rounded-xl border border-orange-400 bg-white hover:bg-orange-50 text-orange-700 font-bold text-xs shadow-xs transition-colors cursor-pointer"
               >
                 Agendar vistoria
               </button>
             </div>
 
             {/* Card 2: Proteja seu veículo */}
-            <div className="bg-[#f0f6fe] border border-blue-100 rounded-2xl p-5 shadow-xs">
-              <div className="w-8 h-8 rounded-lg bg-blue-100 text-blue-600 flex items-center justify-center mb-2.5">
+            <div className="bg-[#f0f6fe] border border-orange-100 rounded-2xl p-5 shadow-xs">
+              <div className="w-8 h-8 rounded-lg bg-orange-100 text-orange-600 flex items-center justify-center mb-2.5">
                 <ShieldCheck className="w-4 h-4" />
               </div>
               <h4 className="text-sm font-bold text-slate-900">
@@ -361,7 +361,7 @@ export const ReportContainer: React.FC<ReportContainerProps> = ({
               </p>
               <button
                 onClick={() => setIsInsuranceModalOpen(true)}
-                className="w-full py-2.5 px-4 rounded-xl border border-blue-400 bg-white hover:bg-blue-50 text-blue-700 font-bold text-xs shadow-xs transition-colors cursor-pointer"
+                className="w-full py-2.5 px-4 rounded-xl border border-orange-400 bg-white hover:bg-orange-50 text-orange-700 font-bold text-xs shadow-xs transition-colors cursor-pointer"
               >
                 Ver opções de seguro
               </button>
@@ -372,7 +372,7 @@ export const ReportContainer: React.FC<ReportContainerProps> = ({
         </div>
 
         {/* 4. Card de Visão Geral do Veículo (Posicionado abaixo) */}
-        <div className="bg-white rounded-2xl border border-slate-200/90 shadow-sm p-5 sm:p-7">
+        <div className="glass-card rounded-[1.75rem] p-5 sm:p-7">
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-12 gap-6 items-center">
 
             {/* Seção 1: Identificação do Veículo sem foto (4 cols) */}
@@ -388,7 +388,7 @@ export const ReportContainer: React.FC<ReportContainerProps> = ({
                 {/* Badge de Placa Mercosul ou tag FIPE */}
                 {isFipeOnly ? (
                   <div className="flex items-center gap-2">
-                    <span className="inline-flex items-center px-2.5 py-1 rounded-md bg-blue-50 border border-blue-200 text-blue-700 text-[11px] font-black tracking-wide">
+                    <span className="inline-flex items-center px-2.5 py-1 rounded-md bg-orange-50 border border-orange-200 text-orange-700 text-[11px] font-black tracking-wide">
                       TABELA FIPE
                     </span>
                     <span className="text-sm font-black text-orange-700">
@@ -495,14 +495,14 @@ export const ReportContainer: React.FC<ReportContainerProps> = ({
             {/* Seção 4: Card Verde "Tudo Certo!" ou card FIPE info */}
             <div className="lg:col-span-3">
               {isFipeOnly ? (
-                <div className="bg-blue-50 border border-blue-200 rounded-2xl p-5 flex flex-col justify-center h-full">
-                  <div className="w-8 h-8 rounded-full bg-blue-100 text-blue-600 flex items-center justify-center mb-2">
+                <div className="bg-orange-50 border border-orange-200 rounded-2xl p-5 flex flex-col justify-center h-full">
+                  <div className="w-8 h-8 rounded-full bg-orange-100 text-orange-600 flex items-center justify-center mb-2">
                     <Info className="w-5 h-5" />
                   </div>
-                  <h4 className="text-sm font-extrabold text-blue-900 tracking-tight">
+                  <h4 className="text-sm font-extrabold text-orange-900 tracking-tight">
                     Dados da Tabela FIPE
                   </h4>
-                  <p className="text-xs text-blue-700 leading-relaxed mt-1 font-medium">
+                  <p className="text-xs text-orange-700 leading-relaxed mt-1 font-medium">
                     {risks.riskSummary}
                   </p>
                 </div>
@@ -582,7 +582,7 @@ export const ReportContainer: React.FC<ReportContainerProps> = ({
                 value={insuranceForm.name}
                 onChange={(e) => setInsuranceForm({ ...insuranceForm, name: e.target.value })}
                 placeholder="Ex: Ana Silva"
-                className="w-full bg-slate-50 border border-slate-300 rounded-xl px-3 py-2 text-slate-900 focus:outline-none focus:border-blue-500"
+                className="w-full bg-slate-50 border border-slate-300 rounded-xl px-3 py-2 text-slate-900 focus:outline-none focus:border-orange-500"
               />
             </div>
             <div>
@@ -593,7 +593,7 @@ export const ReportContainer: React.FC<ReportContainerProps> = ({
                 value={insuranceForm.phone}
                 onChange={(e) => setInsuranceForm({ ...insuranceForm, phone: e.target.value })}
                 placeholder="(11) 98765-4321"
-                className="w-full bg-slate-50 border border-slate-300 rounded-xl px-3 py-2 text-slate-900 focus:outline-none focus:border-blue-500"
+                className="w-full bg-slate-50 border border-slate-300 rounded-xl px-3 py-2 text-slate-900 focus:outline-none focus:border-orange-500"
               />
             </div>
             <div>
@@ -604,7 +604,7 @@ export const ReportContainer: React.FC<ReportContainerProps> = ({
                 value={insuranceForm.zipCode}
                 onChange={(e) => setInsuranceForm({ ...insuranceForm, zipCode: e.target.value })}
                 placeholder="01001-000"
-                className="w-full bg-slate-50 border border-slate-300 rounded-xl px-3 py-2 text-slate-900 focus:outline-none focus:border-blue-500"
+                className="w-full bg-slate-50 border border-slate-300 rounded-xl px-3 py-2 text-slate-900 focus:outline-none focus:border-orange-500"
               />
             </div>
             <div className="pt-2">
@@ -629,7 +629,7 @@ export const ReportContainer: React.FC<ReportContainerProps> = ({
         maxWidth="lg"
         title={
           <div className="flex items-center gap-2">
-            <div className="p-1.5 rounded-lg bg-blue-50 text-blue-600">
+            <div className="p-1.5 rounded-lg bg-orange-50 text-orange-600">
               <Car className="w-5 h-5" />
             </div>
             <div>
@@ -755,7 +755,7 @@ export const ReportContainer: React.FC<ReportContainerProps> = ({
 
       {report.providerData && (
         <section className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 pb-8" aria-labelledby="provider-data-title">
-          <div className="bg-white border border-slate-200 rounded-2xl p-5 shadow-sm">
+          <div className="glass-card rounded-2xl p-5">
             <h2 id="provider-data-title" className="font-bold text-slate-900 mb-3">Dados complementares da consulta</h2>
             <pre className="text-xs text-slate-700 whitespace-pre-wrap break-words overflow-auto max-h-[32rem]">
               {JSON.stringify(report.providerData, null, 2)}

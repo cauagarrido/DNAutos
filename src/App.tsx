@@ -81,15 +81,11 @@ function AppContent() {
     return () => { active = false; };
   }, [handleSearch, isAuthenticated]);
 
-  const isDarkTheme = step === 'SEARCH';
+  const isDarkTheme = false;
 
   return (
     <div
-      className={`min-h-screen flex flex-col font-sans antialiased transition-colors duration-200 ${
-        isDarkTheme
-        ? 'bg-[#0B1320] text-white selection:bg-[#FF6A00] selection:text-white'
-          : 'bg-[#F6F7F5] text-slate-800 selection:bg-orange-600 selection:text-white'
-      }`}
+      className="app-shell min-h-screen flex flex-col font-sans antialiased text-[#0B1320] selection:bg-orange-200 selection:text-[#0B1320]"
     >
       {/* 1. Header */}
       <Navbar
@@ -133,7 +129,7 @@ function AppContent() {
       {/* 4. Rodapé */}
       <Footer theme={isDarkTheme ? 'dark' : 'light'} />
       <AuthModal isOpen={authOpen} onClose={() => setAuthOpen(false)} onSuccess={() => { setAuthOpen(false); void refreshHistory(); if (pendingPlate) void beginCheckout(pendingPlate); }} />
-      {paymentMessage && <div role="status" className="fixed bottom-5 right-5 z-[100] max-w-sm rounded-xl bg-[#0B1320] border border-orange-500/50 px-5 py-4 text-sm text-white shadow-xl">{paymentMessage}</div>}
+      {paymentMessage && <div role="status" className="glass-panel fixed bottom-5 right-5 z-[100] max-w-sm rounded-2xl border border-white/80 px-5 py-4 text-sm font-medium text-slate-700 shadow-xl">{paymentMessage}</div>}
     </div>
   );
 }

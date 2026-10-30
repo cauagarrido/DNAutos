@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { ChevronDown, History, LogOut } from 'lucide-react';
+import { ChevronDown, History, LogOut, Menu, X } from 'lucide-react';
 import { useAuth } from '../../hooks/useAuth';
 
 interface NavbarProps {
@@ -11,176 +11,62 @@ interface NavbarProps {
   onOpenAuth?: () => void;
 }
 
-export const Navbar: React.FC<NavbarProps> = ({
-  theme = 'dark',
-  onOpenHistory,
-  historyCount = 0,
-  onResetToHome,
-  onNavigateSection,
-  onOpenAuth,
-}) => {
+export const Navbar: React.FC<NavbarProps> = ({ onOpenHistory, historyCount = 0, onResetToHome, onNavigateSection, onOpenAuth }) => {
   const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const { isAuthenticated, user, logout } = useAuth();
-
-  const isDark = theme === 'dark';
-
-  const userInitial = user?.name?.charAt(0).toUpperCase() ?? 'U';
   const firstName = user?.name?.split(' ')[0] ?? 'Usuário';
 
-  const handleLogout = () => {
-    setIsUserMenuOpen(false);
-    logout();
-    onResetToHome();
+  const goTo = (id: string) => {
+    setIsMobileMenuOpen(false);
+    if (id === 'home') onResetToHome();
+    else onNavigateSection?.(id);
   };
 
   return (
-    <header
-      className={`w-full transition-colors duration-200 sticky top-0 z-40 ${
-        isDark
-          ? 'bg-[#0B1320]/95 border-b border-slate-700/70 backdrop-blur-md text-white'
-          : 'bg-[#F6F7F5] border-b border-slate-200 shadow-sm text-slate-800'
-      }`}
-    >
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-20 flex items-center justify-between">
-        {/* DNAutos Vistorias */}
-        <button
-          onClick={onResetToHome}
-          className="flex items-center gap-3 group text-left focus:outline-none cursor-pointer"
-        >
-          <img src="/dnautos-logo.png" alt="DNAutos Vistorias" className="w-48 sm:w-56 h-auto rounded bg-white" />
+    <header className="sticky top-0 z-40 border-b border-white/75 bg-white/75 text-[#0B1320] shadow-[0_4px_24px_rgba(22,34,50,.045)] backdrop-blur-2xl supports-[backdrop-filter]:bg-white/65">
+      <div className="mx-auto flex h-[76px] max-w-7xl items-center justify-between gap-4 px-4 sm:px-6 lg:px-8">
+        <button onClick={onResetToHome} className="shrink-0 rounded-xl bg-white/80 px-2 py-1 transition hover:bg-white" aria-label="DNAutos Vistorias — início">
+          <img src="/dnautos-logo.png" alt="DNAutos Vistorias" className="h-auto w-40 sm:w-48" />
         </button>
 
-        {/* Central Nav Links (Aparece na Home escura) */}
-        {isDark ? (
-          <nav className="hidden md:flex items-center gap-8 text-sm font-medium text-slate-300">
-            <button
-              onClick={onResetToHome}
-              className="text-white hover:text-orange-400 transition-colors cursor-pointer font-semibold relative after:content-[''] after:absolute after:-bottom-1 after:left-0 after:w-full after:h-0.5 after:bg-orange-400 after:rounded-full"
-            >
-              Home
-            </button>
-            <button
-              onClick={() => onNavigateSection?.('como-funciona')}
-              className="hover:text-orange-400 transition-colors cursor-pointer text-slate-300"
-            >
-              Como funciona
-            </button>
-            <button
-              onClick={() => onNavigateSection?.('servicos')}
-              className="hover:text-orange-400 transition-colors cursor-pointer text-slate-300"
-            >
-              Nossos serviços
-            </button>
-            <button
-              onClick={() => onNavigateSection?.('duvidas')}
-              className="hover:text-orange-400 transition-colors cursor-pointer text-slate-300"
-            >
-              Dúvidas
-            </button>
-          </nav>
-        ) : null}
+        <nav className="hidden items-center gap-7 text-[12px] font-semibold text-slate-600 lg:flex">
+          <button onClick={() => goTo('home')} className="transition hover:text-[#E65B00]">Início</button>
+          <button onClick={() => goTo('como-funciona')} className="transition hover:text-[#E65B00]">Como funciona</button>
+          <button onClick={() => goTo('servicos')} className="transition hover:text-[#E65B00]">Serviços</button>
+          <button onClick={() => goTo('duvidas')} className="transition hover:text-[#E65B00]">Dúvidas</button>
+        </nav>
 
-        {/* Lado Direito */}
-        <div className="flex items-center gap-3">
-          {isDark ? (
-            <div className="flex items-center gap-4">
-              {isAuthenticated && user ? (
-                /* Usuário logado na home escura */
-                <div className="relative">
-                  <button
-                    onClick={() => setIsUserMenuOpen(!isUserMenuOpen)}
-                    className="flex items-center gap-2 px-3 py-2 rounded-xl border border-slate-700 hover:border-slate-600 bg-slate-800/50 transition-colors cursor-pointer text-xs font-semibold text-slate-200"
-                  >
-                    <div className="w-6 h-6 rounded-full bg-orange-500/20 border border-orange-500/40 flex items-center justify-center text-orange-400 font-bold text-xs">
-                      {userInitial}
-                    </div>
-                    <span>Olá, {firstName}</span>
-                    <ChevronDown className="w-3.5 h-3.5 text-slate-400 ml-0.5" />
-                  </button>
-
-                  {isUserMenuOpen && (
-                    <div className="absolute right-0 mt-2 w-48 bg-[#0d1624] rounded-xl shadow-xl border border-slate-700 py-1.5 z-50 text-xs text-slate-300">
-                      <button
-                        onClick={() => { setIsUserMenuOpen(false); onOpenHistory?.(); }}
-                        className="w-full text-left px-4 py-2 hover:bg-slate-700/50 flex items-center gap-2 font-medium"
-                      >
-                        <History className="w-4 h-4 text-slate-400" />
-                        <span>Minhas Consultas ({historyCount})</span>
-                      </button>
-                      <div className="border-t border-slate-700 my-1"></div>
-                      <button
-                        onClick={handleLogout}
-                        className="w-full text-left px-4 py-2 hover:bg-slate-700/50 text-rose-400 flex items-center gap-2 font-medium"
-                      >
-                        <LogOut className="w-4 h-4" />
-                        <span>Sair</span>
-                      </button>
-                    </div>
-                  )}
-                </div>
-              ) : (
-                <div className="flex items-center gap-3">
-                  <span className="hidden sm:inline-block text-[11px] font-semibold text-orange-400 bg-orange-500/10 px-2.5 py-1 rounded-full border border-orange-500/20">
-                    Consulta segura
-                  </span>
-
-                  <button onClick={onOpenAuth} className="text-xs sm:text-sm font-bold text-slate-950 bg-orange-400 hover:bg-orange-300 rounded-xl px-4 py-2">Entrar / Criar conta</button>
-
-                  <button
-                    onClick={onOpenHistory}
-                    className="text-xs sm:text-sm font-semibold text-slate-300 hover:text-white transition-colors cursor-pointer px-3 py-2 flex items-center gap-2 rounded-xl bg-slate-800/40 border border-slate-700/60"
-                  >
-                    <History className="w-4 h-4 text-orange-400" />
-                    <span>Minhas Consultas</span>
-                    {historyCount > 0 && (
-                      <span className="px-1.5 py-0.5 text-[10px] font-bold bg-orange-500 text-slate-950 rounded-full">
-                        {historyCount}
-                      </span>
-                    )}
-                  </button>
-                </div>
-              )}
+        <div className="flex shrink-0 items-center gap-2 sm:gap-3">
+          {isAuthenticated && user ? (
+            <div className="relative">
+              <button onClick={() => setIsUserMenuOpen(!isUserMenuOpen)} className="flex items-center gap-2 rounded-full border border-white/90 bg-white/75 py-1.5 pl-1.5 pr-3 text-xs font-semibold text-slate-700 shadow-sm backdrop-blur-xl transition hover:bg-white">
+                <span className="flex h-8 w-8 items-center justify-center rounded-full bg-orange-100 font-bold text-[#C94F00]">{user.name.charAt(0).toUpperCase()}</span>
+                <span className="hidden sm:inline">Olá, {firstName}</span><ChevronDown className="h-3.5 w-3.5 text-slate-400" />
+              </button>
+              {isUserMenuOpen && <div className="glass-panel absolute right-0 mt-3 w-56 overflow-hidden rounded-2xl p-1.5 text-xs shadow-xl">
+                <button onClick={() => { setIsUserMenuOpen(false); onOpenHistory?.(); }} className="flex w-full items-center gap-2 rounded-xl px-3 py-2.5 text-left font-medium text-slate-700 transition hover:bg-white/80"><History className="h-4 w-4 text-[#F06400]" />Minhas consultas ({historyCount})</button>
+                <button onClick={() => { setIsUserMenuOpen(false); logout(); onResetToHome(); }} className="flex w-full items-center gap-2 rounded-xl px-3 py-2.5 text-left font-medium text-rose-600 transition hover:bg-rose-50"><LogOut className="h-4 w-4" />Sair da conta</button>
+              </div>}
             </div>
           ) : (
-            /* Perfil do Usuário no Dashboard Claro */
-            <div className="relative">
-              <button
-                onClick={() => setIsUserMenuOpen(!isUserMenuOpen)}
-                className="flex items-center gap-2 px-3.5 py-2 rounded-xl bg-slate-100 hover:bg-slate-200/80 border border-slate-200 transition-colors cursor-pointer text-xs sm:text-sm font-semibold text-slate-700"
-              >
-                <div className="w-7 h-7 rounded-full bg-orange-100 border border-orange-300 flex items-center justify-center text-orange-800 font-bold text-xs">
-                  {userInitial}
-                </div>
-                <span>Olá, {firstName}</span>
-                <ChevronDown className="w-4 h-4 text-slate-400 ml-0.5" />
-              </button>
-
-              {isUserMenuOpen && (
-                <div className="absolute right-0 mt-2 w-48 bg-white rounded-xl shadow-xl border border-slate-100 py-1.5 z-50 text-xs text-slate-700">
-                  <button
-                    onClick={() => {
-                      setIsUserMenuOpen(false);
-                      onOpenHistory?.();
-                    }}
-                    className="w-full text-left px-4 py-2 hover:bg-slate-50 flex items-center gap-2 font-medium"
-                  >
-                    <History className="w-4 h-4 text-slate-400" />
-                    <span>Minhas Consultas ({historyCount})</span>
-                  </button>
-                  <div className="border-t border-slate-100 my-1"></div>
-                  <button
-                    onClick={handleLogout}
-                    className="w-full text-left px-4 py-2 hover:bg-slate-50 text-rose-600 flex items-center gap-2 font-medium"
-                  >
-                    <LogOut className="w-4 h-4" />
-                    <span>Sair</span>
-                  </button>
-                </div>
-              )}
-            </div>
+            <>
+              <button onClick={onOpenHistory} className="hidden items-center gap-2 rounded-full border border-white/90 bg-white/65 px-3.5 py-2.5 text-xs font-semibold text-slate-600 shadow-sm backdrop-blur-xl transition hover:bg-white sm:flex"><History className="h-4 w-4 text-[#F06400]" />Consultas{historyCount > 0 && <span className="rounded-full bg-orange-100 px-1.5 py-0.5 text-[10px] text-[#C94F00]">{historyCount}</span>}</button>
+              <button onClick={onOpenAuth} className="rounded-full bg-[#0B1320] px-4 py-2.5 text-[11px] font-bold text-white shadow-md shadow-slate-900/10 transition hover:-translate-y-0.5 hover:bg-[#18283A] sm:px-5 sm:text-xs">Entrar / Criar conta</button>
+            </>
           )}
+          <button onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)} className="flex h-10 w-10 items-center justify-center rounded-full border border-white/90 bg-white/70 text-slate-600 shadow-sm lg:hidden" aria-label={isMobileMenuOpen ? 'Fechar menu' : 'Abrir menu'}>{isMobileMenuOpen ? <X className="h-4 w-4" /> : <Menu className="h-4 w-4" />}</button>
         </div>
       </div>
+      {isMobileMenuOpen && <div className="glass-panel absolute inset-x-3 top-[calc(100%+8px)] rounded-2xl p-3 shadow-xl lg:hidden">
+        <div className="grid gap-1 text-sm font-semibold text-slate-700">
+          <button onClick={() => goTo('home')} className="rounded-xl px-3 py-3 text-left hover:bg-white/80">Início</button>
+          <button onClick={() => goTo('como-funciona')} className="rounded-xl px-3 py-3 text-left hover:bg-white/80">Como funciona</button>
+          <button onClick={() => goTo('servicos')} className="rounded-xl px-3 py-3 text-left hover:bg-white/80">Serviços</button>
+          <button onClick={() => goTo('duvidas')} className="rounded-xl px-3 py-3 text-left hover:bg-white/80">Dúvidas</button>
+          {!isAuthenticated && <button onClick={() => { setIsMobileMenuOpen(false); onOpenHistory?.(); }} className="rounded-xl px-3 py-3 text-left hover:bg-white/80">Minhas consultas</button>}
+        </div>
+      </div>}
     </header>
   );
 };

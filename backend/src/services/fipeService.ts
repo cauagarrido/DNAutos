@@ -21,10 +21,13 @@ const KIND_PATH_MAP: Record<VehicleKind, string> = {
 const fipeClient = axios.create({
   baseURL: env.fipeApiUrl,
   timeout: 10000,
-  headers: {
-    'Content-Type': 'application/json',
-    Authorization: `Bearer ${env.fipeApiKey}`,
-  },
+  headers: { 'Content-Type': 'application/json' },
+});
+
+// A FIPE API autentica com X-Subscription-Token (não com Authorization: Bearer).
+fipeClient.interceptors.request.use((config) => {
+  if (env.fipeApiKey) config.headers.set('X-Subscription-Token', env.fipeApiKey);
+  return config;
 });
 
 export class FipeService {

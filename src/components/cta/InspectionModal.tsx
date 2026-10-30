@@ -77,11 +77,11 @@ export const InspectionModal: React.FC<InspectionModalProps> = ({
       maxWidth="lg"
       title={
         <div className="flex items-center gap-2">
-          <div className="p-1.5 rounded-lg bg-blue-500/20 text-blue-400">
+          <div className="p-1.5 rounded-lg bg-orange-500/10 text-[#E65B00]">
             <Wrench className="w-5 h-5" />
           </div>
           <div>
-            <h3 className="text-base font-bold text-white">Agendar Vistoria Cautelar Presencial</h3>
+            <h3 className="text-base font-bold text-[#0B1320]">Agendar Vistoria Cautelar Presencial</h3>
             <p className="text-xs text-slate-400 font-normal">Mais de 1.200 unidades em todo o Brasil</p>
           </div>
         </div>
@@ -93,14 +93,14 @@ export const InspectionModal: React.FC<InspectionModalProps> = ({
             <CheckCircle2 className="w-8 h-8" />
           </div>
           
-          <h3 className="text-xl font-bold text-white">Solicitação Recebida com Sucesso!</h3>
+          <h3 className="text-xl font-bold text-[#0B1320]">Solicitação Recebida com Sucesso!</h3>
           <p className="text-xs text-slate-300 max-w-md mx-auto">
             Nosso especialista entrará em contato via WhatsApp nas próximas 2 horas para confirmar o melhor horário e endereço do posto de atendimento.
           </p>
 
-          <div className="p-4 bg-slate-950 rounded-xl border border-slate-800 inline-block font-mono text-sm">
+          <div className="glass-card p-4 rounded-xl inline-block font-mono text-sm">
             <span className="text-slate-400 text-xs block font-sans">Protocolo de Agendamento:</span>
-            <strong className="text-blue-400 text-base">{protocol}</strong>
+            <strong className="text-[#E65B00] text-base">{protocol}</strong>
           </div>
 
           <div className="pt-4">
@@ -112,13 +112,13 @@ export const InspectionModal: React.FC<InspectionModalProps> = ({
       ) : (
         <form onSubmit={handleSubmit} className="space-y-4 text-xs">
           
-          <div className="p-3 bg-blue-500/10 border border-blue-500/20 rounded-xl text-blue-300 flex items-center gap-2">
-            <Sparkles className="w-4 h-4 text-blue-400 flex-shrink-0" />
+          <div className="p-3 bg-orange-50 border border-orange-100 rounded-xl text-slate-700 flex items-center gap-2">
+            <Sparkles className="w-4 h-4 text-[#E65B00] flex-shrink-0" />
             <span>Condição especial DNAutos aplicada à vistoria física da placa <strong>{plate}</strong>.</span>
           </div>
 
           <div className="space-y-1.5">
-            <label className="font-semibold text-slate-300">Seu Nome Completo</label>
+            <label className="font-semibold text-slate-700">Seu Nome Completo</label>
             <div className="relative">
               <User className="w-4 h-4 text-slate-500 absolute left-3 top-3" />
               <input
@@ -127,14 +127,14 @@ export const InspectionModal: React.FC<InspectionModalProps> = ({
                 value={formData.name}
                 onChange={(e) => setFormData({ ...formData, name: e.target.value })}
                 placeholder="Ex: João da Silva"
-                className="w-full bg-slate-950 border border-slate-800 rounded-xl pl-9 pr-3 py-2.5 text-slate-200 focus:outline-none focus:border-blue-500"
+                className="glass-control w-full rounded-xl pl-9 pr-3 py-2.5 text-slate-900 placeholder:text-slate-400 focus:outline-none focus:border-orange-400"
               />
             </div>
           </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div className="space-y-1.5">
-              <label className="font-semibold text-slate-300">WhatsApp / Telefone</label>
+              <label className="font-semibold text-slate-700">WhatsApp / Telefone</label>
               <div className="relative">
                 <Phone className="w-4 h-4 text-slate-500 absolute left-3 top-3" />
                 <input
@@ -143,13 +143,13 @@ export const InspectionModal: React.FC<InspectionModalProps> = ({
                   value={formData.phone}
                   onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
                   placeholder="(11) 99999-9999"
-                  className="w-full bg-slate-950 border border-slate-800 rounded-xl pl-9 pr-3 py-2.5 text-slate-200 focus:outline-none focus:border-blue-500"
+                  className="glass-control w-full rounded-xl pl-9 pr-3 py-2.5 text-slate-900 placeholder:text-slate-400 focus:outline-none focus:border-orange-400"
                 />
               </div>
             </div>
 
             <div className="space-y-1.5">
-              <label className="font-semibold text-slate-300">E-mail</label>
+              <label className="font-semibold text-slate-700">E-mail</label>
               <div className="relative">
                 <Mail className="w-4 h-4 text-slate-500 absolute left-3 top-3" />
                 <input
@@ -158,7 +158,7 @@ export const InspectionModal: React.FC<InspectionModalProps> = ({
                   value={formData.email}
                   onChange={(e) => setFormData({ ...formData, email: e.target.value })}
                   placeholder="joao@email.com"
-                  className="w-full bg-slate-950 border border-slate-800 rounded-xl pl-9 pr-3 py-2.5 text-slate-200 focus:outline-none focus:border-blue-500"
+                  className="glass-control w-full rounded-xl pl-9 pr-3 py-2.5 text-slate-900 placeholder:text-slate-400 focus:outline-none focus:border-orange-400"
                 />
               </div>
             </div>
@@ -166,7 +166,7 @@ export const InspectionModal: React.FC<InspectionModalProps> = ({
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div className="space-y-1.5">
-              <label className="font-semibold text-slate-300">Cidade de Atendimento</label>
+              <label className="font-semibold text-slate-700">Cidade de Atendimento</label>
               <div className="relative">
                 <MapPin className="w-4 h-4 text-slate-500 absolute left-3 top-3" />
                 <input
@@ -175,13 +175,13 @@ export const InspectionModal: React.FC<InspectionModalProps> = ({
                   value={formData.city}
                   onChange={(e) => setFormData({ ...formData, city: e.target.value })}
                   placeholder="Ex: São Paulo"
-                  className="w-full bg-slate-950 border border-slate-800 rounded-xl pl-9 pr-3 py-2.5 text-slate-200 focus:outline-none focus:border-blue-500"
+                  className="glass-control w-full rounded-xl pl-9 pr-3 py-2.5 text-slate-900 placeholder:text-slate-400 focus:outline-none focus:border-orange-400"
                 />
               </div>
             </div>
 
             <div className="space-y-1.5">
-              <label className="font-semibold text-slate-300">Data Preferencial</label>
+              <label className="font-semibold text-slate-700">Data Preferencial</label>
               <div className="relative">
                 <Calendar className="w-4 h-4 text-slate-500 absolute left-3 top-3" />
                 <input
@@ -189,18 +189,18 @@ export const InspectionModal: React.FC<InspectionModalProps> = ({
                   required
                   value={formData.preferredDate}
                   onChange={(e) => setFormData({ ...formData, preferredDate: e.target.value })}
-                  className="w-full bg-slate-950 border border-slate-800 rounded-xl pl-9 pr-3 py-2.5 text-slate-200 focus:outline-none focus:border-blue-500"
+                  className="glass-control w-full rounded-xl pl-9 pr-3 py-2.5 text-slate-900 focus:outline-none focus:border-orange-400"
                 />
               </div>
             </div>
           </div>
 
           <div className="space-y-1.5">
-            <label className="font-semibold text-slate-300">Tipo de Laudo</label>
+            <label className="font-semibold text-slate-700">Tipo de Laudo</label>
             <select
               value={formData.inspectionType}
               onChange={(e: any) => setFormData({ ...formData, inspectionType: e.target.value })}
-              className="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2.5 text-slate-200 focus:outline-none focus:border-blue-500"
+              className="glass-control w-full rounded-xl px-3 py-2.5 text-slate-900 focus:outline-none focus:border-orange-400"
             >
               <option value="Cautelar Completa">Vistoria Cautelar Completa (Estrutura + Pintura + Motor)</option>
               <option value="Transferência Detran">Laudo de Transferência Oficial DETRAN (ECV)</option>

@@ -42,7 +42,7 @@ const SelectField: React.FC<SelectFieldProps> = ({
   isLoading,
 }) => (
   <div className="space-y-1.5">
-    <label htmlFor={id} className="text-xs font-semibold text-slate-300 block">
+    <label htmlFor={id} className="text-xs font-semibold text-slate-600 block">
       {label}
     </label>
     <div className="relative">
@@ -51,13 +51,13 @@ const SelectField: React.FC<SelectFieldProps> = ({
         value={value}
         onChange={(e) => onChange(e.target.value)}
         disabled={disabled || isLoading}
-        className="w-full appearance-none bg-[#0f1e35] border border-slate-600/70 rounded-xl px-3 py-2.5 pr-9 text-sm text-white placeholder:text-slate-600 focus:outline-none focus:border-orange-500/70 focus:ring-1 focus:ring-orange-500/30 transition-all disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer"
+        className="glass-control w-full appearance-none rounded-xl px-3 py-2.5 pr-9 text-sm text-slate-900 placeholder:text-slate-400 focus:outline-none focus:border-orange-400 focus:ring-4 focus:ring-orange-100 transition-all disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer"
       >
         <option value="" className="text-slate-400">
           {isLoading ? 'Carregando…' : placeholder}
         </option>
         {options.map((opt) => (
-          <option key={opt.value} value={opt.value} className="text-white bg-[#0f1e35]">
+          <option key={opt.value} value={opt.value} className="text-slate-900 bg-white">
             {opt.label}
           </option>
         ))}
@@ -158,7 +158,7 @@ export const FipeSearchForm: React.FC<FipeSearchFormProps> = ({ onResult, isLoad
   return (
     <div className="space-y-4">
       {/* Indicador dos 4 passos da API FIPE (Parallelum) */}
-      <div className="flex items-center justify-between px-1 py-1.5 bg-[#0f1a2e] rounded-lg border border-slate-700/60 text-[10px] text-slate-400 font-medium mb-3">
+      <div className="glass-control flex items-center justify-between rounded-xl px-2 py-2 text-[10px] text-slate-500 font-medium mb-3">
         <span className={selectedBrand ? 'text-orange-400 font-bold' : ''}>1. Marca</span>
         <span>→</span>
         <span className={selectedModel ? 'text-orange-400 font-bold' : ''}>2. Modelo</span>
@@ -170,7 +170,7 @@ export const FipeSearchForm: React.FC<FipeSearchFormProps> = ({ onResult, isLoad
 
       {/* Tipo de veículo — botões */}
       <div>
-        <span className="text-xs font-semibold text-slate-300 block mb-2">Tipo de veículo</span>
+        <span className="text-xs font-semibold text-slate-600 block mb-2">Tipo de veículo</span>
         <div className="grid grid-cols-3 gap-2">
           {KIND_OPTIONS.map((opt) => (
             <button
@@ -179,8 +179,8 @@ export const FipeSearchForm: React.FC<FipeSearchFormProps> = ({ onResult, isLoad
               onClick={() => setTipo(opt.value)}
               className={`py-2.5 rounded-xl text-xs font-bold transition-all cursor-pointer border ${
                 tipo === opt.value
-                  ? 'bg-orange-500 text-slate-950 border-orange-500 shadow-md shadow-orange-500/20'
-                  : 'bg-[#0f1e35] text-slate-300 border-slate-600/70 hover:border-orange-500/40'
+                  ? 'bg-[#FF6A00] text-white border-[#FF6A00] shadow-md shadow-orange-500/20'
+                  : 'bg-white/65 text-slate-600 border-slate-200 hover:border-orange-300'
               }`}
             >
               <span className="block text-base leading-none mb-0.5">{opt.emoji}</span>
@@ -228,8 +228,8 @@ export const FipeSearchForm: React.FC<FipeSearchFormProps> = ({ onResult, isLoad
 
       {/* Erro */}
       {error && (
-        <div className="flex items-start gap-2 p-3 bg-red-500/10 border border-red-500/30 rounded-xl text-red-300 text-xs font-medium">
-          <AlertCircle className="w-4 h-4 flex-shrink-0 mt-0.5 text-red-400" />
+        <div className="flex items-start gap-2 p-3 bg-rose-50 border border-rose-200 rounded-xl text-rose-700 text-xs font-medium">
+          <AlertCircle className="w-4 h-4 flex-shrink-0 mt-0.5 text-rose-500" />
           <span>{error}</span>
         </div>
       )}
@@ -240,7 +240,7 @@ export const FipeSearchForm: React.FC<FipeSearchFormProps> = ({ onResult, isLoad
         onClick={handleConsult}
         disabled={!canConsult}
         id="fipe-consult-btn"
-        className="w-full py-3 rounded-xl bg-orange-500 hover:bg-orange-400 disabled:opacity-40 disabled:cursor-not-allowed text-slate-950 font-black text-sm tracking-wide transition-all hover:scale-[1.02] active:scale-[0.98] shadow-lg shadow-orange-500/25 cursor-pointer flex items-center justify-center gap-2"
+        className="w-full py-3 rounded-xl bg-gradient-to-b from-[#FF8126] to-[#F06400] hover:brightness-105 disabled:opacity-40 disabled:cursor-not-allowed text-white font-bold text-sm tracking-wide transition-all shadow-lg shadow-orange-500/20 cursor-pointer flex items-center justify-center gap-2"
       >
         {parentLoading ? (
           <Loader2 className="w-4 h-4 animate-spin" />
