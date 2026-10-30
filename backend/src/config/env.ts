@@ -13,10 +13,11 @@ export const env = {
   anycarReportTypes: (process.env.ANYCAR_REPORT_TYPES || process.env.ANYCAR_REPORT_TYPE || '').split(',').map((type) => type.trim()).filter(Boolean),
   jwtSecret: process.env.JWT_SECRET || '',
   databasePath: process.env.DATABASE_PATH || path.resolve(__dirname, '../../data/benzcheck.sqlite'),
+  databaseUrl: process.env.DATABASE_URL || '',
   reportPrice: Number(process.env.REPORT_PRICE || '0'),
   mercadoPagoAccessToken: process.env.MERCADO_PAGO_ACCESS_TOKEN || '',
   mercadoPagoWebhookSecret: process.env.MERCADO_PAGO_WEBHOOK_SECRET || '',
-  publicAppUrl: process.env.PUBLIC_APP_URL || 'http://localhost:5173',
-  publicApiUrl: process.env.PUBLIC_API_URL || 'http://localhost:3000',
+  publicAppUrl: process.env.PUBLIC_APP_URL || (process.env.VERCEL_PROJECT_PRODUCTION_URL || process.env.VERCEL_URL ? `https://${process.env.VERCEL_PROJECT_PRODUCTION_URL || process.env.VERCEL_URL}` : 'http://localhost:5173'),
+  publicApiUrl: process.env.PUBLIC_API_URL || (process.env.VERCEL_PROJECT_PRODUCTION_URL || process.env.VERCEL_URL ? `https://${process.env.VERCEL_PROJECT_PRODUCTION_URL || process.env.VERCEL_URL}` : 'http://localhost:3000'),
   corsOrigin: process.env.CORS_ORIGIN || '*',
 };

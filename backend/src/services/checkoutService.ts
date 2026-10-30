@@ -1,6 +1,6 @@
 import axios from 'axios';
 import { randomUUID, createHmac, timingSafeEqual } from 'node:crypto';
-import { db } from './database';
+import { dbGet, dbRun } from './database';
 import { env } from '../config/env';
 import { signReportToken } from './reportToken';
 
@@ -19,13 +19,13 @@ export class CheckoutService {
       back_urls: { success: `${env.publicAppUrl}/?pagamento=sucesso&paymentId=${id}`, pending: `${env.publicAppUrl}/?pagamento=pendente&paymentId=${id}`, failure: `${env.publicAppUrl}/?pagamento=falhou&paymentId=${id}` },
       auto_return: 'approved',
     }, { headers: { Authorization: `Bearer ${env.mercadoPagoAccessToken}` } });
-    db.prepare('INSERT INTO payments (id,user_id,plate,amount,status,mp_preference_id,created_at,expires_at) VALUES (?,?,?,?,?,?,?,?)')
-      .run(id, userId, clean, Math.round(env.reportPrice * 100), 'pending', response.data.id, new Date().toISOString(), expires);
+    await dbRun('INSERT INTO payments (id,user_id,plate,amount,status,mp_preference_id,created_at,expires_at) VALUES (?,?,?,?,?,?,?,?)',
+      [id, userId, clean, Math.round(env.reportPrice * 100), 'pending', response.data.id, new Date().toISOString(), expires]);
     return { paymentId: id, checkoutUrl: response.data.init_point, amount: env.reportPrice, plate: clean, expiresAt: expires };
   }
 
-  static status(id: string, userId: string) {
-    const row = db.prepare('SELECT id,plate,status,report_token FROM payments WHERE id=? AND user_id=?').get(id, userId) as any;
+  static async status(id: string, userId: string) {
+    const row = await dbGet<any>('SELECT id,plate,status,report_token FROM payments WHERE id=? AND user_id=?', [id, userId]);
     if (!row) { const e = new Error('Pagamento não encontrado.') as Error & { status: number }; e.status = 404; throw e; }
     return { paymentId: row.id, plate: row.plate, status: row.status, isPaid: row.status === 'approved', reportToken: row.report_token ?? undefined };
   }
@@ -45,10 +45,10 @@ export class CheckoutService {
     const payment = (await axios.get(`https://api.mercadopago.com/v1/payments/${encodeURIComponent(dataId)}`, { headers: { Authorization: `Bearer ${env.mercadoPagoAccessToken}` } })).data;
     const ref = payment.external_reference as string | undefined;
     if (!ref) return;
-    const row = db.prepare('SELECT * FROM payments WHERE id=?').get(ref) as any;
+    const row = await dbGet<any>('SELECT * FROM payments WHERE id=?', [ref]);
     if (!row || Number(payment.transaction_amount) !== row.amount / 100) return;
     const status = payment.status === 'approved' ? 'approved' : payment.status === 'rejected' ? 'rejected' : 'pending';
     const token = status === 'approved' ? signReportToken({ userId: row.user_id, paymentId: row.id, plate: row.plate }, 30 * 60) : null;
-    db.prepare('UPDATE payments SET status=?, mp_payment_id=?, report_token=? WHERE id=?').run(status, String(dataId), token, ref);
+    await dbRun('UPDATE payments SET status=?, mp_payment_id=?, report_token=? WHERE id=?', [status, String(dataId), token, ref]);
   }
 }

@@ -9,7 +9,17 @@ Plataforma de consulta de histórico veicular com interface DNAutos, autenticaç
 3. Copie `.env.example` para `.env` na raiz.
 4. Na raiz, rode `npm run dev:all`.
 
-O banco SQLite é criado em `backend/data/benzcheck.sqlite`. Em produção, configure `DATABASE_PATH` para armazenamento persistente, faça backup e proteja o disco. Uma implantação com múltiplas instâncias deve migrar esta camada para PostgreSQL.
+O banco SQLite é criado em `backend/data/benzcheck.sqlite` para desenvolvimento local. Em produção, use a variável `DATABASE_URL` com uma conexão Postgres persistente.
+
+## Deploy automático na Vercel
+
+O `vercel.json` configura o frontend Vite e a API Express como Services na mesma origem (`/` e `/api`). Na importação do GitHub, escolha **Import multi-service project** e confirme o preset **Services**. O projeto Vercel precisa ter acesso ao recurso Services (Beta).
+
+Antes de usar produção, conecte um Postgres pelo Vercel Marketplace (por exemplo, Neon) e disponibilize a variável `DATABASE_URL` pooled para o backend. O SQLite local é mantido para desenvolvimento; o backend recusa iniciar em produção sem `DATABASE_URL` para não usar um arquivo efêmero como se fosse persistente. Dados existentes em `backend/data/benzcheck.sqlite` não são copiados automaticamente para o novo banco.
+
+Cadastre as variáveis de `backend/.env.example` no ambiente do backend na Vercel. Em produção, são necessárias pelo menos `DATABASE_URL`, `JWT_SECRET`, `REPORT_PRICE`, `MERCADO_PAGO_ACCESS_TOKEN`, `MERCADO_PAGO_WEBHOOK_SECRET`, `FIPE_API_URL` e `FIPE_API_KEY`. Após assinar a AnyCar, inclua `ANYCAR_API_URL`, `ANYCAR_API_KEY` e `ANYCAR_REPORT_TYPES`. Defina `PUBLIC_APP_URL` e `PUBLIC_API_URL` com o domínio da implantação. Conecte o projeto ao GitHub e escolha a branch de produção; commits nessa branch acionam novos deploys.
+
+A variável pública opcional `VITE_API_URL` pode ficar vazia: em produção o frontend chama `/api` no mesmo domínio. Segredos e `DATABASE_URL` devem ficar apenas no backend.
 
 ## Fluxo de consulta
 

@@ -1,5 +1,5 @@
 import { createHmac, randomBytes, scryptSync, timingSafeEqual } from 'node:crypto';
-import { db } from './database';
+import { dbGet, dbRun } from './database';
 import { env } from '../config/env';
 
 type UserRow = { id: string; name: string; email: string; password_hash: string; created_at: string };
@@ -24,16 +24,19 @@ function publicUser(row: UserRow) { return { id: row.id, name: row.name, email: 
 function session(row: UserRow) { return { user: publicUser(row), token: sign({ sub: row.id, type: 'session' }, 60 * 60 * 24 * 30) }; }
 
 export class AuthService {
-  static register(name: string, email: string, password: string) {
+  static async register(name: string, email: string, password: string) {
     if (!name?.trim() || !/^\S+@\S+\.\S+$/.test(email ?? '') || (password?.length ?? 0) < 8) throw new Error('Informe nome e e-mail válidos; a senha deve ter pelo menos 8 caracteres.');
     const id = randomBytes(16).toString('hex'); const created = new Date().toISOString(); const salt = randomBytes(16).toString('hex');
     const hash = `${salt}:${scryptSync(password, salt, 64).toString('hex')}`;
-    try { db.prepare('INSERT INTO users (id,name,email,password_hash,created_at) VALUES (?,?,?,?,?)').run(id, name.trim(), email.trim().toLowerCase(), hash, created); }
-    catch { throw new Error('Este e-mail já está cadastrado. Faça login.'); }
+    try { await dbRun('INSERT INTO users (id,name,email,password_hash,created_at) VALUES (?,?,?,?,?)', [id, name.trim(), email.trim().toLowerCase(), hash, created]); }
+    catch (error: any) {
+      if (error?.code === '23505' || (error?.code === 'ERR_SQLITE_ERROR' && /unique/i.test(error?.message ?? ''))) throw new Error('Este e-mail já está cadastrado. Faça login.');
+      throw error;
+    }
     return session({ id, name: name.trim(), email: email.trim().toLowerCase(), password_hash: hash, created_at: created });
   }
-  static login(email: string, password: string) {
-    const row = db.prepare('SELECT * FROM users WHERE email=?').get(email.trim().toLowerCase()) as UserRow | undefined;
+  static async login(email: string, password: string) {
+    const row = await dbGet<UserRow>('SELECT * FROM users WHERE email=?', [email.trim().toLowerCase()]);
     if (!row) throw new Error('E-mail ou senha incorretos.');
     const [salt, digest] = row.password_hash.split(':'); const expected = Buffer.from(digest, 'hex'); const actual = scryptSync(password, salt, 64);
     if (!timingSafeEqual(expected, actual)) throw new Error('E-mail ou senha incorretos.');

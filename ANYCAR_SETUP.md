@@ -97,7 +97,7 @@ O adaptador atual normaliza os dados mais comuns em `backend/src/services/anycar
 3. Configure URLs HTTPS públicas e o webhook de produção no Mercado Pago.
 4. Configure `REPORT_PRICE`, `JWT_SECRET`, `CORS_ORIGIN`, `PUBLIC_APP_URL` e `PUBLIC_API_URL` para produção.
 5. Faça uma única consulta controlada e confira status no Mercado Pago, consumo no painel AnyCar, relatório, histórico da conta e logs do backend.
-6. Configure armazenamento persistente e backup para `DATABASE_PATH`. A instalação atual usa SQLite em um único backend; múltiplas instâncias precisam compartilhar uma base PostgreSQL antes de escalar.
+6. Configure `DATABASE_URL` com a URL pooled de um Postgres persistente (por exemplo, Neon pelo Vercel Marketplace) e mantenha backup. `DATABASE_PATH` com SQLite é somente para desenvolvimento local e não é usado em produção serverless.
 
 ## Diagnóstico rápido
 
