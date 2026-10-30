@@ -5,12 +5,14 @@ import { Pool } from 'pg';
 import { env } from '../config/env';
 
 const usePostgres = Boolean(env.databaseUrl);
-if (env.nodeEnv === 'production' && !usePostgres) {
+const isVercelPreview = process.env.VERCEL === '1' && process.env.VERCEL_ENV === 'preview';
+if (env.nodeEnv === 'production' && !usePostgres && !isVercelPreview) {
   throw new Error('DATABASE_URL é obrigatório em produção para salvar os dados em banco persistente.');
 }
 const sqlite = usePostgres ? null : (() => {
-  fs.mkdirSync(path.dirname(env.databasePath), { recursive: true });
-  return new DatabaseSync(env.databasePath);
+  const databasePath = isVercelPreview ? '/tmp/dnautos-preview.sqlite' : env.databasePath;
+  fs.mkdirSync(path.dirname(databasePath), { recursive: true });
+  return new DatabaseSync(databasePath);
 })();
 const postgres = usePostgres
   ? new Pool({ connectionString: env.databaseUrl, max: 5 })
