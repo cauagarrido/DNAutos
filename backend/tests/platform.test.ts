@@ -4,7 +4,7 @@ import { readFileSync } from "node:fs";
 import { randomUUID, createHmac } from "node:crypto";
 import request from "supertest";
 import { PGlite } from "@electric-sql/pglite";
-import { database } from "../src/services/database";
+import { database } from "../src/database/client";
 import { env, IDLE_MS, PRICE_CENTS } from "../src/config/env";
 import {
   digest,
@@ -12,15 +12,19 @@ import {
   unseal,
   passwordSchema,
   plateSchema,
-} from "../src/utils/security";
-import { verifySignature, mercadoPago } from "../src/services/mercadoPago";
-import { CheckoutService } from "../src/services/checkoutService";
-import { ReportService } from "../src/services/reportService";
-import { VehicleService } from "../src/services/vehicleService";
-import { isIdle } from "../src/services/sessionService";
+} from "../src/shared/security";
+import {
+  verifySignature,
+  mercadoPago,
+} from "../src/integrations/mercado-pago/mercado-pago.client";
+import { CheckoutService } from "../src/modules/checkout/checkout.service";
+import { ReportService } from "../src/modules/vehicle/report.service";
+import { VehicleService } from "../src/modules/vehicle/vehicle.service";
+import { isIdle } from "../src/modules/auth/session.service";
 import app from "../src/app";
-import { AnycarService } from "../src/services/anycarService";
+import { AnycarService } from "../src/integrations/anycar/anycar.client";
 import axios from "axios";
+import { FipeService } from "../src/integrations/fipe/fipe.client";
 
 const userId = "11111111-1111-4111-8111-111111111111",
   otherId = "22222222-2222-4222-8222-222222222222";
@@ -807,6 +811,147 @@ test("ANYCAR normalizer preserves unknown risks and omits raw personal data", as
     assert.ok(!JSON.stringify(report).includes("12345678900"));
   } finally {
     stub.mock.restore();
+  }
+});
+test("all account, payment and report routes require an authenticated server session", async () => {
+  const id = randomUUID();
+  for (const route of [
+    "/api/auth/session",
+    "/api/auth/reports",
+    "/api/account/orders",
+    "/api/checkout/status/" + id,
+  ])
+    assert.equal((await request(app).get(route)).status, 401, route);
+  for (const route of [
+    "/api/checkout",
+    "/api/account/support",
+    "/api/vehicle/orders/" + id + "/report",
+    "/api/auth/activity",
+    "/api/auth/password",
+    "/api/auth/mfa/challenge",
+    "/api/auth/mfa/verify",
+    "/api/auth/logout",
+  ])
+    assert.equal((await post(route, {})).status, 401, route);
+});
+test("HTTP payload limits, JSON validation and CSRF reject invalid requests without leaking details", async () => {
+  const invalid = await request(app)
+    .post("/api/auth/login")
+    .set("Origin", origin())
+    .set("X-App-Request", "1")
+    .set("Content-Type", "application/json")
+    .send("{broken");
+  assert.equal(invalid.status, 400);
+  assert.equal(invalid.body.stack, undefined);
+  const large = await post("/api/auth/login", { email: "x".repeat(17000) });
+  assert.equal(large.status, 413);
+  const foreign = await request(app)
+    .post("/api/auth/login")
+    .set("Origin", "https://attacker.example")
+    .set("X-App-Request", "1")
+    .send({});
+  assert.equal(foreign.status, 403);
+  const missing = await request(app)
+    .post("/api/auth/login")
+    .set("Origin", origin())
+    .send({});
+  assert.equal(missing.status, 403);
+  const form = await request(app)
+    .post("/api/auth/login")
+    .set("Origin", origin())
+    .set("X-App-Request", "1")
+    .type("form")
+    .send({ email: "x" });
+  assert.equal(form.status, 415);
+});
+test("forwarded IP spoofing cannot bypass the application rate limiter", async () => {
+  for (let i = 0; i < 5; i++)
+    assert.equal(
+      (
+        await post("/api/auth/register", {
+          email: "novo@example.com",
+          password: "senha-segura-123",
+        }).set("X-Forwarded-For", "192.0.2." + i)
+      ).status,
+      200,
+    );
+  assert.equal(
+    (
+      await post("/api/auth/register", {
+        email: "novo@example.com",
+        password: "senha-segura-123",
+      }).set("X-Forwarded-For", "198.51.100.1")
+    ).status,
+    429,
+  );
+});
+test("maintenance requires its exact bearer secret and never accepts browser authentication", async () => {
+  env.cronSecret = "c".repeat(40);
+  assert.equal(
+    (await request(app).get("/api/maintenance/reconcile")).status,
+    401,
+  );
+  assert.equal(
+    (
+      await request(app)
+        .get("/api/maintenance/reconcile")
+        .set("Authorization", "Bearer incorrect")
+    ).status,
+    401,
+  );
+  const valid = await request(app)
+    .get("/api/maintenance/reconcile")
+    .set("Authorization", "Bearer " + env.cronSecret);
+  assert.equal(valid.status, 200);
+  assert.equal(valid.body.processed, 0);
+});
+test("all FIPE routes are wired to their adapter and validate query parameters before a provider call", async () => {
+  const calls = [];
+  const mocks = [
+    mock.method(FipeService, "getBrands", async () => {
+      calls.push("brands");
+      return [{ codigo: "21", nome: "Marca" }];
+    }),
+    mock.method(FipeService, "getModels", async () => {
+      calls.push("models");
+      return [{ codigo: "4824", nome: "Modelo" }];
+    }),
+    mock.method(FipeService, "getYears", async () => {
+      calls.push("years");
+      return [{ codigo: "2020-1", nome: "2020" }];
+    }),
+    mock.method(FipeService, "getVehicleData", async () => {
+      calls.push("vehicle");
+      return { Marca: "Marca" };
+    }),
+  ];
+  try {
+    for (const route of [
+      "/brands?tipo=carros",
+      "/models?tipo=carros&brandCode=21",
+      "/years?tipo=carros&brandCode=21&modelCode=4824",
+      "/vehicle?tipo=carros&brandCode=21&modelCode=4824&yearCode=2020-1",
+    ])
+      assert.equal(
+        (await request(app).get("/api/fipe" + route)).status,
+        200,
+        route,
+      );
+    assert.deepEqual(calls, ["brands", "models", "years", "vehicle"]);
+    for (const route of [
+      "/brands?tipo=invalid",
+      "/models?brandCode=..%2Fprivate",
+      "/years?brandCode=21",
+      "/vehicle?brandCode=21&modelCode=4824&yearCode=..%2Fprivate",
+    ])
+      assert.equal(
+        (await request(app).get("/api/fipe" + route)).status,
+        400,
+        route,
+      );
+    assert.equal(calls.length, 4);
+  } finally {
+    mocks.forEach((stub) => stub.mock.restore());
   }
 });
 test("restricted runtime role has access to app data but no access to Supabase auth data", async () => {

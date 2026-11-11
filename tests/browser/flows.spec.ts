@@ -1,4 +1,24 @@
 import { test, expect } from "@playwright/test";
+test("plate consultation requires login and never creates a checkout anonymously", async ({
+  page,
+}) => {
+  const checkoutRequests: string[] = [];
+  page.on("request", (request) => {
+    if (request.url().includes("/api/checkout"))
+      checkoutRequests.push(request.url());
+  });
+  await page.goto("/");
+  await page.getByLabel("Digite a placa do veículo").fill("ABC1D23");
+  await page
+    .getByRole("button", { name: "Consultar veículo · R$ 50,00" })
+    .click();
+  await expect(page.getByRole("dialog")).toBeVisible();
+  await expect(page.getByLabel("E-mail", { exact: true })).toBeVisible();
+  await expect(
+    page.getByRole("button", { name: "Pagar R$ 50,00 no Mercado Pago" }),
+  ).toHaveCount(0);
+  expect(checkoutRequests).toEqual([]);
+});
 test("unconfigured services fail closed and show honest customer messages", async ({
   page,
 }) => {

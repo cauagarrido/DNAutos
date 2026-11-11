@@ -4,7 +4,7 @@ import {
   checkoutConfigured,
   PRICE_CENTS,
 } from "../src/config/env";
-import { getPool } from "../src/services/database";
+import { getPool } from "../src/database/client";
 async function main() {
   const checks: Record<string, boolean> = {
     auth: authConfigured(),

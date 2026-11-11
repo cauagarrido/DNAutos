@@ -2,7 +2,7 @@
 
 O backend está preparado para um provedor de consultas pagas, mas o contrato ANYCAR ainda não foi fornecido.
 
-O transporte provisório em backend/src/services/anycarService.ts pressupõe POST /api/consultar, x-api-key, body {tipo,placa} e resposta {status,dados}. Não trate essas suposições como contrato confirmado.
+O transporte provisório em backend/src/integrations/anycar/anycar.client.ts pressupõe POST /api/consultar, x-api-key, body {tipo,placa} e resposta {status,dados}. Não trate essas suposições como contrato confirmado.
 
 1. Obtenha documentação, credenciais, tipos, limites, cobrança e amostras anonimizadas do produto.
 2. Compare e ajuste o transporte e toReport ao contrato real.

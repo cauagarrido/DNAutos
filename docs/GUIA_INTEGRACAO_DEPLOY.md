@@ -22,11 +22,11 @@ Fonte sobre armazenamento de senhas: https://supabase.com/docs/guides/auth/passw
 2. Abra o terminal na raiz e instale as dependências:
 ```text
 npm ci
-npm ci --prefix backend
+npm run setup
 ```
 3. No PowerShell, crie os arquivos locais de configuração:
 ```text
-Copy-Item .env.example .env
+Copy-Item frontend/.env.example frontend/.env
 Copy-Item backend/.env.example backend/.env
 ```
 4. Deixe VITE_API_URL=/api. Em backend/.env, mantenha PUBLIC_APP_URL=http://localhost:5110 e PUBLIC_API_URL=http://localhost:3000. Use sempre o mesmo nome de host no navegador.
@@ -156,7 +156,7 @@ https://github.com/mercadopago/sdk-nodejs/blob/master/docs/webhooks.md
 1. Solicite ao fornecedor a documentação do produto contratado: host, método, autenticação, tipos de consulta, exemplos reais anonimizados, erros, limites, timeout, cobrança e política de repetição.
 2. Confirme o custo total. Uma compra de R$ 50,00 pode chamar mais de um tipo em ANYCAR_REPORT_TYPES; isso pode consumir vários créditos do fornecedor.
 3. O adaptador atual pressupõe POST {ANYCAR_API_URL}/api/consultar, cabeçalho x-api-key, body { tipo, placa } e resposta { status, dados }. Essa forma ainda NÃO foi validada contra seu contrato.
-4. Compare o contrato com backend/src/services/anycarService.ts e ajuste transporte e toReport quando necessário. Configure ANYCAR_API_URL, ANYCAR_API_KEY e ANYCAR_REPORT_TYPES apenas para os produtos autorizados.
+4. Compare o contrato com backend/src/integrations/anycar/anycar.client.ts e ajuste transporte e toReport quando necessário. Configure ANYCAR_API_URL, ANYCAR_API_KEY e ANYCAR_REPORT_TYPES apenas para os produtos autorizados.
 5. Use fixtures anonimizadas do contrato para verificar os cartões de situação cadastral, finanças, leilão, sinistro, restrições, proprietário/quilometragem e FIPE quando disponíveis. Um dado ausente deve aparecer como não informado.
 6. Não infira IPVA regular, origem Detran, gravidade de sinistro, score ou ausência de ocorrência a partir de campos faltantes. Mapeamentos dependentes do contrato foram deixados conservadores.
 7. A resposta bruta do fornecedor não é exibida nem persistida automaticamente. Revise cada campo permitido, principalmente dados pessoais de proprietários, e a necessidade de armazená-lo.
@@ -175,7 +175,7 @@ Use backend/.env.example como inventário. Estas são as categorias:
 - Consulta: URL/chave/produtos ANYCAR, ANYCAR_CONTRACT_VERIFIED e CHECKOUT_ENABLED.
 - Operação: SUPPORT_URL com URL HTTPS real de atendimento e CRON_SECRET aleatório.
 - Hospedagem: NODE_ENV=production; TRUST_PROXY=1 somente atrás de um proxy confiável; SERVE_FRONTEND=true em VPS/processo único.
-- FIPE: FIPE_API_URL e FIPE_API_KEY quando o fornecedor exigir.
+- FIPE: FIPE_API_URL e FIPE_API_KEY quando o fornecedor exigir. A consulta FIPE é gratuita para o visitante e não exige login, Supabase ou Mercado Pago. O padrão usa a API v2 Parallelum, com acesso sem token sujeito à cota do provedor. Somente a consulta por placa é paga e exige conta.
 
 Não existe REPORT_PRICE configurável pelo cliente. Para alterar o preço futuramente, será necessário revisar código do servidor, constraint do banco, interface, testes e política comercial em uma mudança coordenada.
 
@@ -195,7 +195,7 @@ Em outra plataforma, configure Playwright com um navegador disponível. Não pub
 
 ## 10. Publicar temporariamente na Vercel
 1. Versione a implementação em um repositório privado ou com os segredos devidamente excluídos. Confirme que .env não aparece em git status.
-2. Importe a raiz do repositório para um projeto Vercel. O vercel.json existente usa Services: app para Vite e backend para Express.
+2. Importe a raiz do repositório para um projeto Vercel. O vercel.json existente usa Services: app com raiz frontend/ para Vite e backend/ para Express. Services está em beta; valide sua disponibilidade e limites no projeto.
 3. Mantenha a raiz do projeto no repositório, o Node.js em 24.x e a configuração de Services. Não transforme o backend em um site estático.
 4. O frontend atende /. O backend recebe /api/* no mesmo domínio. VITE_API_URL=/api mantém cookies e evita configuração de autenticação entre domínios.
 5. Cadastre as variáveis do backend no ambiente correto do projeto. Credenciais, URL do banco e chaves de sessão devem ser tratadas como Secret. Preview deve usar serviços/contas de teste.
@@ -214,7 +214,7 @@ https://vercel.com/docs/environment-variables
 ## 11. Hostinger: frontend e backend juntos
 Sim, é possível manter este frontend e o backend juntos. O requisito é um plano que execute Node.js persistente e permita conexões de saída HTTPS/PostgreSQL. O banco e o Auth continuam no Supabase.
 
-A Hostinger oferece opções de aplicação Node.js em planos elegíveis, além de VPS. Confira a disponibilidade exata no plano e painel antes de contratar. Hospedar apenas dist em uma hospedagem estática não executa a API.
+A Hostinger oferece opções de aplicação Node.js em planos elegíveis, além de VPS. Confira a disponibilidade exata no plano e painel antes de contratar. Hospedar apenas frontend/dist em uma hospedagem estática não executa a API.
 
 Para um plano gerenciado de aplicação Node.js:
 1. Confirme Node.js 24, customização de build/start, variáveis de ambiente, HTTPS e saída para o pooler do Supabase.
@@ -222,7 +222,7 @@ Para um plano gerenciado de aplicação Node.js:
 3. Configure como build:
 ```text
 npm ci
-npm ci --prefix backend
+npm run setup
 npm run build:all
 ```
 4. Use como comando de inicialização:
@@ -230,7 +230,7 @@ npm run build:all
 node backend/dist/server.js
 ```
 5. Configure NODE_ENV=production e SERVE_FRONTEND=true. Use a porta fornecida pela hospedagem via PORT. Ative TRUST_PROXY=1 apenas se a plataforma realmente colocar um proxy confiável à frente.
-6. Cadastre as mesmas variáveis privadas, com as URLs finais. O backend serve dist e /api no mesmo processo.
+6. Cadastre as mesmas variáveis privadas, com as URLs finais. O backend serve frontend/dist e /api no mesmo processo.
 7. Ligue o domínio, habilite HTTPS e teste login, compra, webhook e histórico. Programe a manutenção por um agendador externo se o plano não oferecer cron.
 8. Se o painel não permitir este monorepo, o build ou o processo persistente, use a opção de VPS com Docker descrita na próxima página.
 

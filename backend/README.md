@@ -2,7 +2,7 @@
 
 Express/TypeScript com Supabase Auth e PostgreSQL privado. Veja o [guia completo](../docs/GUIA_INTEGRACAO_DEPLOY.md).
 
-Use Node 24, npm ci, copie .env.example para .env e configure os serviços. npm run dev inicia a API; npm run build e npm start usam a versão compilada. Não há SQLite nem autenticação local de produção.
+Use Node 24. Na raiz do repositório, execute npm ci e npm run setup; copie backend/.env.example para backend/.env e configure os serviços. npm run dev:backend inicia a API pela raiz. Dentro de backend/, npm run dev, npm run build e npm start executam os comandos próprios do servidor. Não há SQLite nem autenticação local de produção.
 
 ## Endpoints
 - /api/auth: register, login, session, activity, logout, recover, resend, confirm, password, google, callback e mfa/challenge/verify.
@@ -19,4 +19,4 @@ Todas as mutações do navegador exigem Origin exata, JSON e X-App-Request: 1. S
 
 npm test verifica lógica e SQL em PostgreSQL embarcado com provedores simulados. npm run doctor verifica configuração e conexão reais, sem imprimir segredos.
 
-SERVE_FRONTEND=true permite servir o dist da raiz no mesmo processo Node. Vercel exporta a aplicação Express separadamente. Nada assíncrono é deixado rodando depois de enviar a resposta.
+SERVE_FRONTEND=true permite servir frontend/dist no mesmo processo Node. Vercel exporta a aplicação Express separadamente. Nada assíncrono é deixado rodando depois de enviar a resposta.

@@ -2,6 +2,8 @@
 
 O navegador só fala com o backend da aplicação. O backend usa Supabase Auth para verificar identidade e PostgreSQL no schema privado benz para sessões, compras e consultas. As integrações faturáveis nunca são chamadas diretamente pelo frontend.
 
+O código Web fica em frontend/src. O backend separa módulos funcionais em backend/src/modules, adaptadores de provedores em integrations, persistência em database e composição HTTP/middlewares em http. Os contratos da API ficam em contracts. A raiz coordena comandos e testes que atravessam as duas aplicações; os pacotes e suas dependências são independentes.
+
 ```mermaid
 sequenceDiagram
     participant U as Cliente
@@ -58,7 +60,9 @@ Não existe garantia de exactly-once entre uma API externa e o PostgreSQL sem su
 ## Controles complementares
 Origem exata, JSON e cabeçalho próprio nas mutações; exceção autenticada por assinatura para o webhook. Cookie no mesmo domínio. Helmet/CSP, limites de body, timeout, redirecionamentos externos desabilitados em chamadas de credenciais e erros sem stack/segredos.
 
-Rate limits persistem no banco e funcionam em múltiplas instâncias. Configure corretamente o proxy de origem e também os limites de Supabase/gateway. A chave HMAC das tentativas deve ser independente da chave de sessão.
+Os rate limits de autenticação, checkout e relatório persistem no banco e funcionam em múltiplas instâncias. A FIPE é pública e gratuita, com limitador independente em memória (90 requisições/minuto por IP, até 10 mil entradas por processo, chaves HMAC efêmeras e Retry-After). Ela não depende de banco, login, segredo de sessão ou gateway. Em múltiplas instâncias/serverless, complemente o limite FIPE no WAF/proxy; o contador local não é compartilhado. Configure corretamente o proxy de origem e também os limites de Supabase/gateway. A chave HMAC das tentativas privadas deve ser independente da chave de sessão.
+
+O resultado FIPE usa uma tela própria com valor, referência, marca, modelo, ano, combustível e código. Não gera relatório por placa, compra, crédito, histórico cadastral ou declarações de ausência de débitos/restrições.
 
 Dados brutos da ANYCAR não são entregues nem armazenados automaticamente. O normalizador deve ser revisado contra o contrato. Valores ausentes não significam ausência de risco.
 
