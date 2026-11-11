@@ -72,7 +72,7 @@ export interface AuctionRecord {
   auctionDate?: string;
   category?: 'Recuperado de Financiamento' | 'Sinistro / Colisão' | 'Frota' | 'Leilão Judicial';
   damageLevel?: 'Sem Danos' | 'Pequena Monta' | 'Média Monta' | 'Grande Monta';
-  auctionScoreRisk: number;
+  auctionScoreRisk: number | null;
   images?: string[];
   notes?: string;
 }
@@ -91,7 +91,7 @@ export interface RiskDetails {
   riskSummary: string;
   theftRecord: {
     isStolenOrTheftAlert: boolean | null;
-    status: 'Sem Alerta de Furto/Roubo' | 'Alerta Ativo no SINESP' | 'Recuperado' | 'Não informado';
+    status: 'Sem Alerta de Furto/Roubo' | 'Alerta Ativo no SINESP' | 'Alerta informado pelo provedor' | 'Recuperado' | 'Não informado';
   };
   judicialRestrictions: {
     hasRestriction: boolean | null;

@@ -753,16 +753,6 @@ export const ReportContainer: React.FC<ReportContainerProps> = ({
         </div>
       </Modal>
 
-      {report.providerData && (
-        <section className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 pb-8" aria-labelledby="provider-data-title">
-          <div className="glass-card rounded-2xl p-5">
-            <h2 id="provider-data-title" className="font-bold text-slate-900 mb-3">Dados complementares da consulta</h2>
-            <pre className="text-xs text-slate-700 whitespace-pre-wrap break-words overflow-auto max-h-[32rem]">
-              {JSON.stringify(report.providerData, null, 2)}
-            </pre>
-          </div>
-        </section>
-      )}
 
     </div>
   );

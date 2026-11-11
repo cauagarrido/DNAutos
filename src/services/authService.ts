@@ -1,23 +1,66 @@
-import axios from 'axios';
-import { User, RegisterData, LoginData } from '../types/auth';
-import { API_BASE_URL } from './config';
-const STORAGE_KEY = 'benzcheck_session';
-type Session = { user: User; token: string };
-function load(): Session | null {
-  try { const data = JSON.parse(localStorage.getItem(STORAGE_KEY) || 'null'); return data?.token && data?.user ? data : null; } catch { return null; }
-}
-function save(session: Session) { localStorage.setItem(STORAGE_KEY, JSON.stringify(session)); }
+import { http } from "./http";
+import {
+  AuthSession,
+  RegisterData,
+  LoginData,
+  PublicConfig,
+} from "../types/auth";
 export const authService = {
-  async register(data: RegisterData): Promise<User> {
-    try { const res = await axios.post<Session>(`${API_BASE_URL}/auth/register`, data); save(res.data); return res.data.user; }
-    catch (e: any) { throw new Error(e.response?.data?.message || 'Não foi possível criar sua conta.'); }
+  async config() {
+    return (await http.get<PublicConfig>("/config")).data;
   },
-  async login(data: LoginData): Promise<User> {
-    try { const res = await axios.post<Session>(`${API_BASE_URL}/auth/login`, data); save(res.data); return res.data.user; }
-    catch (e: any) { throw new Error(e.response?.data?.message || 'Não foi possível entrar.'); }
+  async session() {
+    return (await http.get<AuthSession>("/auth/session")).data;
   },
-  logout() { localStorage.removeItem(STORAGE_KEY); },
-  getCurrentUser(): User | null { return load()?.user ?? null; },
-  getToken(): string | null { return load()?.token ?? null; },
-  isAuthenticated() { return !!load()?.token; },
+  async register(data: RegisterData) {
+    return (await http.post<{ message: string }>("/auth/register", data)).data;
+  },
+  async login(data: LoginData) {
+    await http.post("/auth/login", data);
+    return this.session();
+  },
+  async logout() {
+    await http.post("/auth/logout", {});
+  },
+  async activity() {
+    await http.post("/auth/activity", {});
+  },
+  async recover(email: string) {
+    return (await http.post<{ message: string }>("/auth/recover", { email }))
+      .data;
+  },
+  async resend(email: string) {
+    return (await http.post<{ message: string }>("/auth/resend", { email }))
+      .data;
+  },
+  async confirm(tokenHash: string, type: "signup" | "recovery") {
+    return (
+      await http.post<{ message?: string; recovery?: boolean }>(
+        "/auth/confirm",
+        { tokenHash, type },
+      )
+    ).data;
+  },
+  async resetPassword(password: string) {
+    return (
+      await http.post<{ message: string }>("/auth/password", { password })
+    ).data;
+  },
+  async google() {
+    window.location.assign(
+      (await http.post<{ url: string }>("/auth/google", {})).data.url,
+    );
+  },
+  async challenge(phone?: string) {
+    return (
+      await http.post<{ factorId: string; challengeId: string }>(
+        "/auth/mfa/challenge",
+        phone ? { phone } : {},
+      )
+    ).data;
+  },
+  async verify(data: { factorId: string; challengeId: string; code: string }) {
+    await http.post("/auth/mfa/verify", data);
+    return this.session();
+  },
 };

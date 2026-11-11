@@ -1,0 +1,48 @@
+services:
+  app:
+    build:
+      context: ..
+      dockerfile: Dockerfile
+    env_file: ../backend/.env
+    environment:
+      NODE_ENV: production
+      SERVE_FRONTEND: "true"
+      TRUST_PROXY: "1"
+      PORT: "3000"
+    restart: unless-stopped
+    expose:
+      - "3000"
+    read_only: true
+    tmpfs:
+      - /tmp
+    security_opt:
+      - no-new-privileges:true
+    cap_drop:
+      - ALL
+    logging:
+      options:
+        max-size: "10m"
+        max-file: "3"
+  proxy:
+    image: caddy:2-alpine
+    restart: unless-stopped
+    environment:
+      APP_DOMAIN: ${APP_DOMAIN:?Configure APP_DOMAIN in deploy/.env}
+      ACME_EMAIL: ${ACME_EMAIL:?Configure ACME_EMAIL in deploy/.env}
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddy_data:/data
+      - caddy_config:/config
+    depends_on:
+      app:
+        condition: service_healthy
+    logging:
+      options:
+        max-size: "10m"
+        max-file: "3"
+volumes:
+  caddy_data:
+  caddy_config:

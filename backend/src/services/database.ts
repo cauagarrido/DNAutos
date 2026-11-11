@@ -1,63 +1,49 @@
-import { DatabaseSync } from 'node:sqlite';
-import fs from 'node:fs';
-import path from 'node:path';
-import { Pool } from 'pg';
-import { env } from '../config/env';
-
-const usePostgres = Boolean(env.databaseUrl);
-if (env.nodeEnv === 'production' && !usePostgres) {
-  throw new Error('DATABASE_URL é obrigatório em produção para salvar os dados em banco persistente.');
-}
-const sqlite = usePostgres ? null : (() => {
-  fs.mkdirSync(path.dirname(env.databasePath), { recursive: true });
-  return new DatabaseSync(env.databasePath);
-})();
-const postgres = usePostgres
-  ? new Pool({ connectionString: env.databaseUrl, max: 5 })
-  : null;
-
-function pgSql(sql: string) {
-  let parameterIndex = 0;
-  return sql.replace(/\?/g, () => `$${++parameterIndex}`);
-}
-
-const schema = `
-  CREATE TABLE IF NOT EXISTS users (id TEXT PRIMARY KEY, name TEXT NOT NULL, email TEXT NOT NULL UNIQUE, password_hash TEXT NOT NULL, created_at TEXT NOT NULL);
-  CREATE TABLE IF NOT EXISTS payments (id TEXT PRIMARY KEY, user_id TEXT NOT NULL REFERENCES users(id), plate TEXT NOT NULL, amount INTEGER NOT NULL, status TEXT NOT NULL, mp_preference_id TEXT, mp_payment_id TEXT, report_token TEXT, created_at TEXT NOT NULL, expires_at TEXT NOT NULL);
-  CREATE TABLE IF NOT EXISTS reports (id TEXT PRIMARY KEY, user_id TEXT NOT NULL REFERENCES users(id), plate TEXT NOT NULL, report_json TEXT NOT NULL, consulted_at TEXT NOT NULL);
-  CREATE INDEX IF NOT EXISTS reports_user_date ON reports(user_id, consulted_at DESC);
-`;
-
-const ready = (async () => {
-  if (sqlite) {
-    sqlite.exec('PRAGMA journal_mode = WAL; PRAGMA foreign_keys = ON;');
-    sqlite.exec(schema);
-  } else if (postgres) {
-    await postgres.query(schema);
+import { Pool, PoolClient, QueryResultRow } from "pg";
+import { env } from "../config/env";
+import { HttpError } from "../utils/security";
+let pool: Pool | undefined;
+export function getPool() {
+  if (!env.databaseUrl)
+    throw new HttpError(503, "Serviço ainda não configurado.");
+  if (!pool) {
+    const url = new URL(env.databaseUrl);
+    for (const key of ["sslmode", "sslcert", "sslkey", "sslrootcert"])
+      url.searchParams.delete(key);
+    pool = new Pool({
+      connectionString: url.toString(),
+      max: 5,
+      connectionTimeoutMillis: 8000,
+      idleTimeoutMillis: 10_000,
+      statement_timeout: 15_000,
+      ssl:
+        env.nodeEnv === "production" || env.databaseCa
+          ? { rejectUnauthorized: true, ca: env.databaseCa }
+          : undefined,
+    });
+    pool.on("error", () => console.error("database_connection_error"));
   }
-})();
-
-export async function dbGet<T>(sql: string, params: any[] = []): Promise<T | undefined> {
-  await ready;
-  if (sqlite) return sqlite.prepare(sql).get(...params) as T | undefined;
-  const result = await postgres!.query(pgSql(sql), params);
-  return result.rows[0] as T | undefined;
+  return pool;
 }
-
-export async function dbAll<T>(sql: string, params: any[] = []): Promise<T[]> {
-  await ready;
-  if (sqlite) return sqlite.prepare(sql).all(...params) as T[];
-  const result = await postgres!.query(pgSql(sql), params);
-  return result.rows as T[];
-}
-
-export async function dbRun(sql: string, params: any[] = []): Promise<void> {
-  await ready;
-  if (sqlite) {
-    sqlite.prepare(sql).run(...params);
-    return;
-  }
-  await postgres!.query(pgSql(sql), params);
-}
-
-export const databaseMode = usePostgres ? 'postgres' : 'sqlite';
+export type Sql = Pick<PoolClient, "query">;
+export const database = {
+  async query<T extends QueryResultRow = any>(
+    sql: string,
+    values: unknown[] = [],
+  ) {
+    return (await getPool().query<T>(sql, values)).rows;
+  },
+  async transaction<T>(work: (client: Sql) => Promise<T>): Promise<T> {
+    const client = await getPool().connect();
+    try {
+      await client.query("BEGIN");
+      const result = await work(client);
+      await client.query("COMMIT");
+      return result;
+    } catch (error) {
+      await client.query("ROLLBACK");
+      throw error;
+    } finally {
+      client.release();
+    }
+  },
+};

@@ -24,6 +24,8 @@ out/
 .env.test.local
 .env.production.local
 .env.*.local
+.env.*
+!.env.example
 
 # ===========================
 # Cache e Logs
@@ -74,3 +76,8 @@ coverage/
 # Misc
 # ===========================
 *.local
+tmp/
+test-results/
+playwright-report/
+.vercel/
+supabase/.temp/

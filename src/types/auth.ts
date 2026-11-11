@@ -4,19 +4,25 @@ export interface User {
   email: string;
   createdAt: string;
 }
-
-export interface AuthState {
-  isAuthenticated: boolean;
-  user: User | null;
-}
-
 export interface RegisterData {
-  name: string;
   email: string;
   password: string;
 }
-
 export interface LoginData {
   email: string;
   password: string;
+}
+export interface AuthSession {
+  user: User;
+  mfaRequired: boolean;
+  needsEnrollment: boolean;
+  factorId?: string;
+  recovery: boolean;
+}
+export interface PublicConfig {
+  authAvailable: boolean;
+  checkoutAvailable: boolean;
+  priceCents: number;
+  supportUrl: string | null;
+  requirePhoneMfa: boolean;
 }

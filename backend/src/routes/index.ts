@@ -1,27 +1,41 @@
-import { Router } from 'express';
-import vehicleRoutes from './vehicleRoutes';
-import checkoutRoutes from './checkoutRoutes';
-import fipeRoutes from './fipeRoutes';
-import inspectionRoutes from './inspectionRoutes';
-import insuranceRoutes from './insuranceRoutes';
-import authRoutes from './authRoutes';
-
+import { Router } from "express";
+import vehicleRoutes from "./vehicleRoutes";
+import checkoutRoutes from "./checkoutRoutes";
+import fipeRoutes from "./fipeRoutes";
+import authRoutes from "./authRoutes";
+import accountRoutes from "./accountRoutes";
+import maintenanceRoutes from "./maintenanceRoutes";
+import {
+  authConfigured,
+  checkoutConfigured,
+  env,
+  PRICE_CENTS,
+} from "../config/env";
+import { rateLimit } from "../middlewares/security";
 const router = Router();
-
-// Rota de Health Check da API
-router.get('/health', (req, res) => {
+router.get("/health", (_req, res) => {
+  res.json({ status: "OK", service: "DNAutos API" });
+});
+router.get("/config", (_req, res) => {
+  const url = env.supportUrl;
   res.json({
-    status: 'OK',
-    service: 'DNAutos Vistorias API',
-    timestamp: new Date().toISOString(),
+    authAvailable: authConfigured(),
+    checkoutAvailable: checkoutConfigured(),
+    priceCents: PRICE_CENTS,
+    supportUrl: /^https:\/\//.test(url) ? url : null,
+    requirePhoneMfa: env.requirePhoneMfa,
   });
 });
-
-router.use('/auth', authRoutes);
-router.use('/vehicle', vehicleRoutes);
-router.use('/checkout', checkoutRoutes);
-router.use('/fipe', fipeRoutes);
-router.use('/inspection', inspectionRoutes);
-router.use('/insurance', insuranceRoutes);
-
+router.use("/auth", authRoutes);
+router.use("/vehicle", vehicleRoutes);
+router.use("/checkout", checkoutRoutes);
+router.use("/account", accountRoutes);
+router.use("/maintenance", maintenanceRoutes);
+router.use("/fipe", rateLimit("fipe", 90, 60), fipeRoutes);
+// Legacy lead forms are disabled until a real delivery/persistence integration exists.
+router.post(["/inspection/schedule", "/insurance/quote"], (_req, res) => {
+  res
+    .status(503)
+    .json({ message: "Use o contato direto para solicitar atendimento." });
+});
 export default router;

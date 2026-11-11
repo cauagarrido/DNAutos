@@ -1,17 +1,40 @@
-import { Request, Response, NextFunction } from 'express';
-
-export function errorHandler(err: any, req: Request, res: Response, next: NextFunction) {
-  const status = err.status || err.statusCode || 500;
-  const message = err.message || 'Ocorreu um erro interno no servidor.';
-
-  console.error(`[Error] ${req.method} ${req.url} - Status ${status}: ${message}`);
-  if (err.stack && process.env.NODE_ENV === 'development') {
-    console.error(err.stack);
-  }
-
-  res.status(status).json({
-    error: true,
-    message,
-    ...(process.env.NODE_ENV === 'development' ? { stack: err.stack } : {}),
-  });
+import { Request, Response, NextFunction } from "express";
+import { ZodError } from "zod";
+import { HttpError } from "../utils/security";
+export function errorHandler(
+  error: unknown,
+  req: Request,
+  res: Response,
+  _next: NextFunction,
+) {
+  const status =
+    error instanceof ZodError
+      ? 400
+      : error instanceof HttpError
+        ? error.status
+        : (error as any)?.type === "entity.too.large"
+          ? 413
+          : 500;
+  if (status >= 500)
+    console.error(
+      JSON.stringify({
+        event: "request_error",
+        requestId: res.locals.requestId,
+        method: req.method,
+        route: req.route?.path,
+        status,
+      }),
+    );
+  res
+    .status(status)
+    .json({
+      message:
+        error instanceof ZodError
+          ? "Verifique os dados informados."
+          : error instanceof HttpError
+            ? error.message
+            : "Serviço indisponível. Tente novamente ou fale com o suporte.",
+      code: error instanceof HttpError ? error.code : undefined,
+      requestId: res.locals.requestId,
+    });
 }

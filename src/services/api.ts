@@ -1,112 +1,93 @@
-import axios, { AxiosInstance } from 'axios';
-import { authService } from './authService';
-import { API_BASE_URL } from './config';
+import { http } from "./http";
 import {
   FullVehicleReport,
-  VehicleBasicInfo,
   InspectionBookingRequest,
-  InsuranceQuoteRequest
-} from '../types/vehicle';
-
-// Configuração da URL do Backend (Vite env ou fallback padrão)
-export { API_BASE_URL } from './config';
-
-const apiClient: AxiosInstance = axios.create({
-  baseURL: API_BASE_URL,
-  timeout: 10000,
-  headers: {
-    'Content-Type': 'application/json',
-  },
-});
-apiClient.interceptors.request.use((config) => {
-  const token = authService.getToken();
-  if (token) config.headers.Authorization = `Bearer ${token}`;
-  return config;
-});
-
+  InsuranceQuoteRequest,
+} from "../types/vehicle";
+export interface Purchase {
+  id: string;
+  plate: string;
+  amountCents: number;
+  status: string;
+  reportState: string;
+  createdAt: string;
+  expiresAt: string;
+  checkoutUrl: string | null;
+  refundRequested: boolean;
+}
+export interface CheckoutStatus {
+  orderId: string;
+  plate: string;
+  isPaid: boolean;
+  status: string;
+  reportState: string;
+  amountCents: number;
+  checkoutUrl: string | null;
+}
 export const vehicleApi = {
-  /**
-   * Busca os dados básicos do veículo para a tela de prévia direto na API
-   */
-  async getVehiclePreview(plate: string): Promise<VehicleBasicInfo> {
-    const cleanPlate = plate.toUpperCase().replace(/[^A-Z0-9]/g, '');
-    const response = await apiClient.get<VehicleBasicInfo>(`/vehicle/preview/${cleanPlate}`);
-    return response.data;
+  async createCheckout(plate: string, requestKey: string) {
+    return (
+      await http.post<{
+        orderId: string;
+        checkoutUrl: string;
+        amountCents: number;
+        expiresAt: string;
+      }>("/checkout", { plate }, { headers: { "Idempotency-Key": requestKey } })
+    ).data;
   },
-
-  async createCheckout(plate: string): Promise<{ paymentId: string; checkoutUrl: string; amount: number; expiresAt: string }> {
-    const cleanPlate = plate.toUpperCase().replace(/[^A-Z0-9]/g, '');
-    const response = await apiClient.post('/checkout', { plate: cleanPlate });
-    return response.data;
+  async getCheckoutStatus(orderId: string) {
+    return (
+      await http.get<CheckoutStatus>(
+        `/checkout/status/${encodeURIComponent(orderId)}`,
+      )
+    ).data;
   },
-
-  async getCheckoutStatus(paymentId: string): Promise<{ isPaid: boolean; status: string; reportToken?: string; plate: string }> {
-    const response = await apiClient.get(`/checkout/status/${paymentId}`);
-    return response.data;
+  async getPurchases(offset = 0) {
+    return (
+      await http.get<{ orders: Purchase[]; nextOffset: number | null }>(
+        "/account/orders",
+        { params: { offset } },
+      )
+    ).data;
   },
-
-  async getAccountHistory(): Promise<FullVehicleReport[]> {
-    const response = await apiClient.get<FullVehicleReport[]>('/auth/reports');
-    return response.data;
+  async requestSupport(
+    orderId: string,
+    kind: "refund" | "error",
+    message: string,
+  ) {
+    return (
+      await http.post<{ protocol: string; message: string }>(
+        "/account/support",
+        { orderId, kind, message },
+      )
+    ).data;
   },
-
-  async clearAccountHistory(): Promise<void> {
-    await apiClient.delete('/auth/reports');
+  async getAccountHistory() {
+    return (await http.get<FullVehicleReport[]>("/auth/reports")).data;
   },
-
-  /**
-   * Obtém o relatório completo do veículo por placa direto na API
-   */
-  async getFullReport(plate: string, paymentToken: string): Promise<FullVehicleReport> {
-    const cleanPlate = plate.toUpperCase().replace(/[^A-Z0-9]/g, '');
-    const response = await apiClient.get<FullVehicleReport>(`/vehicle/report/${cleanPlate}`, {
-      headers: { Authorization: `Bearer ${paymentToken}` },
-    });
-    
-    // Salva no histórico local do navegador ao receber resposta válida
-    vehicleApi.saveToLocalHistory(response.data);
-    return response.data;
+  async getFullReport(orderId: string) {
+    return (
+      await http.post<FullVehicleReport>(
+        `/vehicle/orders/${encodeURIComponent(orderId)}/report`,
+        {},
+        { timeout: 60000 },
+      )
+    ).data;
   },
-
-  /**
-   * Envia formulário de agendamento de Vistoria Cautelar Presencial direto na API
-   */
-  async requestInspectionBooking(data: InspectionBookingRequest): Promise<{ success: boolean; protocol: string }> {
-    const response = await apiClient.post('/inspection/schedule', data);
-    return response.data;
+  async requestInspectionBooking(data: InspectionBookingRequest) {
+    return (
+      await http.post<{ success: boolean; protocol: string }>(
+        "/inspection/schedule",
+        data,
+      )
+    ).data;
   },
-
-  /**
-   * Envia solicitação de cotação de seguro/proteção veicular direto na API
-   */
-  async requestInsuranceQuote(data: InsuranceQuoteRequest): Promise<{ success: boolean; protocol: string }> {
-    const response = await apiClient.post('/insurance/quote', data);
-    return response.data;
+  async requestInsuranceQuote(data: InsuranceQuoteRequest) {
+    return (
+      await http.post<{ success: boolean; protocol: string }>(
+        "/insurance/quote",
+        data,
+      )
+    ).data;
   },
-
-  /**
-   * Gerenciamento de Histórico Local (Minhas Consultas)
-   */
-  getLocalHistory(): FullVehicleReport[] {
-    try {
-      const stored = localStorage.getItem('benzcheck_history');
-      if (stored) {
-        return JSON.parse(stored);
-      }
-    } catch (e) {
-      console.error('Erro ao ler histórico local', e);
-    }
-    return [];
-  },
-
-  saveToLocalHistory(report: FullVehicleReport): void {
-    try {
-      const current = this.getLocalHistory();
-      const filtered = current.filter(r => r.basicInfo.plate !== report.basicInfo.plate);
-      const updated = [report, ...filtered].slice(0, 10);
-      localStorage.setItem('benzcheck_history', JSON.stringify(updated));
-    } catch (e) {
-      console.error('Erro ao salvar no histórico local', e);
-    }
-  }
 };

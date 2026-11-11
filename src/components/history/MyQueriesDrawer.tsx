@@ -1,154 +1,292 @@
-import React from 'react';
-import { FullVehicleReport } from '../../types/vehicle';
-import {
-  X,
-  History,
-  Car,
-  Trash2,
-  ArrowRight,
-  ShieldCheck,
-  AlertTriangle,
-  ShieldAlert,
-  Calendar
-} from 'lucide-react';
-import { Button } from '../ui/Button';
-
-interface MyQueriesDrawerProps {
+import React, { useEffect, useState } from "react";
+import { Modal } from "../ui/Modal";
+import { vehicleApi, Purchase } from "../../services/api";
+import { FullVehicleReport } from "../../types/vehicle";
+import { useAuth } from "../../hooks/useAuth";
+import { errorMessage } from "../../services/http";
+interface Props {
   isOpen: boolean;
   onClose: () => void;
   history: FullVehicleReport[];
   onSelectReport: (report: FullVehicleReport) => void;
-  onClearHistory: () => void;
+  onOpenOrder: (id: string) => Promise<void>;
 }
-
-export const MyQueriesDrawer: React.FC<MyQueriesDrawerProps> = ({
+const labels: Record<string, string> = {
+  pending: "Aguardando pagamento",
+  approved: "Pago",
+  rejected: "Recusado",
+  cancelled: "Cancelado",
+  refunded: "Estornado",
+  charged_back: "Contestação",
+  in_mediation: "Em análise",
+};
+export function MyQueriesDrawer({
   isOpen,
   onClose,
   history,
   onSelectReport,
-  onClearHistory,
-}) => {
-  if (!isOpen) return null;
-
-  const formatDate = (dateStr: string) => {
+  onOpenOrder,
+}: Props) {
+  const { config, isAuthenticated } = useAuth();
+  const [orders, setOrders] = useState<Purchase[]>([]),
+    [loading, setLoading] = useState(false),
+    [error, setError] = useState<string | null>(null),
+    [nextOffset, setNextOffset] = useState<number | null>(null);
+  const [supportOrder, setSupportOrder] = useState<Purchase | null>(null),
+    [kind, setKind] = useState<"refund" | "error">("error"),
+    [message, setMessage] = useState(""),
+    [protocol, setProtocol] = useState<string | null>(null);
+  useEffect(() => {
+    if (!isOpen) return;
+    let active = true;
+    setOrders([]);
+    setProtocol(null);
+    setSupportOrder(null);
+    setError(null);
+    setNextOffset(null);
+    if (!isAuthenticated) return;
+    setLoading(true);
+    void vehicleApi
+      .getPurchases()
+      .then((data) => {
+        if (active) {
+          setOrders(data.orders);
+          setNextOffset(data.nextOffset);
+        }
+      })
+      .catch((err) => {
+        if (active) setError(errorMessage(err));
+      })
+      .finally(() => {
+        if (active) setLoading(false);
+      });
+    return () => {
+      active = false;
+    };
+  }, [isOpen, isAuthenticated]);
+  const more = async () => {
+    if (nextOffset === null) return;
+    setLoading(true);
     try {
-      const d = new Date(dateStr);
-      return new Intl.DateTimeFormat('pt-BR', {
-        dateStyle: 'short',
-        timeStyle: 'short',
-      }).format(d);
-    } catch {
-      return dateStr;
+      const data = await vehicleApi.getPurchases(nextOffset);
+      setOrders((prev) => [...prev, ...data.orders]);
+      setNextOffset(data.nextOffset);
+    } catch (err) {
+      setError(errorMessage(err));
+    } finally {
+      setLoading(false);
     }
   };
-
+  const submit = async (event: React.FormEvent) => {
+    event.preventDefault();
+    if (!supportOrder) return;
+    setLoading(true);
+    setError(null);
+    try {
+      const result = await vehicleApi.requestSupport(
+        supportOrder.id,
+        kind,
+        message,
+      );
+      setProtocol(result.protocol);
+      setMessage("");
+      setOrders((prev) =>
+        prev.map((item) =>
+          item.id === supportOrder.id && kind === "refund"
+            ? { ...item, refundRequested: true }
+            : item,
+        ),
+      );
+      setSupportOrder(null);
+    } catch (err) {
+      setError(errorMessage(err));
+    } finally {
+      setLoading(false);
+    }
+  };
   return (
-    <div className="fixed inset-0 z-50 overflow-hidden">
-      {/* Backdrop */}
-      <div
-        className="fixed inset-0 bg-slate-900/20 backdrop-blur-md transition-opacity"
-        onClick={onClose}
-      />
-
-      <div className="fixed inset-y-0 right-0 max-w-full flex pl-10">
-        <div className="glass-panel h-full w-screen max-w-md border-l border-white/80 shadow-2xl flex flex-col z-10 animate-in slide-in-from-right duration-300">
-          
-          {/* Header */}
-          <div className="p-6 border-b border-white/70 flex items-center justify-between bg-white/35">
-            <div className="flex items-center gap-2.5">
-              <div className="p-2 rounded-xl bg-orange-50 text-[#F06400] ring-1 ring-orange-100">
-                <History className="w-5 h-5" />
-              </div>
-              <div>
-                <h3 className="text-base font-bold text-[#0B1320]">Minhas Consultas</h3>
-                <p className="text-xs text-slate-500">{history.length} relatório(s) salvo(s)</p>
-              </div>
+    <Modal
+      isOpen={isOpen}
+      onClose={onClose}
+      title="Histórico de compras"
+      maxWidth="lg"
+    >
+      <div className="space-y-4">
+        {!isAuthenticated && (
+          <p className="text-sm">
+            Entre na sua conta para acessar suas compras e consultas.
+          </p>
+        )}
+        {error && (
+          <p
+            role="alert"
+            className="rounded-xl bg-red-50 p-3 text-sm text-red-700"
+          >
+            {error}
+          </p>
+        )}
+        {protocol && (
+          <p role="status" className="rounded-xl bg-emerald-50 p-3 text-sm">
+            Solicitação registrada. Protocolo:{" "}
+            <strong className="break-all">{protocol}</strong>. Acompanhe pelo
+            contato direto. O estorno depende de análise e confirmação no
+            gateway.
+          </p>
+        )}
+        {isAuthenticated && orders.length === 0 && !loading && (
+          <p className="text-sm text-slate-500">Você ainda não tem compras.</p>
+        )}
+        {orders.map((order) => (
+          <article
+            className="glass-card space-y-3 rounded-2xl p-4"
+            key={order.id}
+          >
+            <div className="flex justify-between gap-3">
+              <strong>{order.plate}</strong>
+              <span className="text-sm">
+                {(order.amountCents / 100).toLocaleString("pt-BR", {
+                  style: "currency",
+                  currency: "BRL",
+                })}
+              </span>
             </div>
-
-            <button
-              onClick={onClose}
-              className="p-2 text-slate-500 hover:text-slate-900 rounded-xl hover:bg-white/70"
-            >
-              <X className="w-5 h-5" />
-            </button>
-          </div>
-
-          {/* List of Consultations */}
-          <div className="flex-1 overflow-y-auto p-6 space-y-4">
-            {history.length === 0 ? (
-              <div className="text-center py-16 text-slate-500 text-xs space-y-3">
-                <Car className="w-12 h-12 text-slate-300 mx-auto" />
-                <p className="font-bold text-slate-700">Nenhuma consulta realizada ainda</p>
-                <p className="text-[11px] max-w-xs mx-auto">
-                  Assim que você consultar uma placa e desbloquear o relatório, ele ficará disponível aqui para acesso ilimitado.
-                </p>
-              </div>
-            ) : (
-              history.map((item) => (
-                <div
-                  key={item.id}
-                  className="glass-card p-4 rounded-2xl transition-all space-y-3 group"
-                >
-                  <div className="flex items-center justify-between">
-                    <span className="px-2.5 py-1 bg-[#003399] text-white text-xs font-black tracking-widest rounded uppercase">
-                      {item.basicInfo.plate}
-                    </span>
-
-                    <span className={`text-[11px] font-bold px-2 py-0.5 rounded-full ${
-                      item.risks.overallRiskLevel === 'safe'
-                        ? 'bg-orange-500/10 text-orange-400 border border-orange-500/20'
-                        : (item.risks.overallRiskLevel === 'warning'
-                          ? 'bg-amber-500/10 text-amber-400 border border-amber-500/20'
-                          : 'bg-rose-500/10 text-rose-400 border border-rose-500/20')
-                    }`}>
-                      Score {item.risks.riskScore == null ? 'não informado' : `${item.risks.riskScore}/100`}
-                    </span>
-                  </div>
-
-                  <div>
-                    <h4 className="text-sm font-bold text-slate-900 group-hover:text-[#E65B00] transition-colors">
-                      {item.basicInfo.brand} {item.basicInfo.model}
-                    </h4>
-                    <p className="text-[11px] text-slate-500 flex items-center gap-1 mt-1">
-                      <Calendar className="w-3 h-3 text-slate-500" />
-                      {formatDate(item.consultedAt)}
-                    </p>
-                  </div>
-
-                  <Button
-                    variant="secondary"
-                    size="sm"
-                    className="w-full text-xs justify-between group-hover:bg-orange-600 group-hover:text-white transition-colors"
-                    onClick={() => {
-                      onSelectReport(item);
-                      onClose();
-                    }}
-                    rightIcon={<ArrowRight className="w-3.5 h-3.5" />}
-                  >
-                    Ver Relatório Completo
-                  </Button>
-                </div>
-              ))
+            <p className="text-xs text-slate-600">
+              {labels[order.status] || order.status} ·{" "}
+              {new Date(order.createdAt).toLocaleString("pt-BR")}
+            </p>
+            <p className="break-all text-xs text-slate-500">
+              Compra {order.id}
+            </p>
+            {order.status === "approved" && (
+              <p className="text-xs">
+                {order.refundRequested
+                  ? "Estorno solicitado. A consulta está pausada."
+                  : order.reportState === "complete"
+                    ? "Relatório disponível"
+                    : order.reportState === "available"
+                      ? "Consulta disponível para esta placa"
+                      : order.reportState === "processing"
+                        ? "Consulta em processamento"
+                        : "Consulta em análise. Fale com o suporte."}
+              </p>
             )}
-          </div>
-
-          {/* Footer with Clear History Button */}
-          {history.length > 0 && (
-            <div className="p-4 border-t border-white/70 bg-white/35">
-              <Button
-                variant="ghost"
-                size="sm"
-                className="w-full text-rose-400 hover:text-rose-300 hover:bg-rose-500/10 text-xs"
-                onClick={onClearHistory}
-                leftIcon={<Trash2 className="w-4 h-4" />}
+            {order.status === "approved" &&
+              !order.refundRequested &&
+              ["available", "complete"].includes(order.reportState) && (
+                <button
+                  className="w-full rounded-xl bg-orange-500 p-3 text-sm font-bold disabled:opacity-50"
+                  disabled={loading}
+                  onClick={() => {
+                    setLoading(true);
+                    void onOpenOrder(order.id)
+                      .catch((err) => setError(errorMessage(err)))
+                      .finally(() => setLoading(false));
+                  }}
+                >
+                  {order.reportState === "complete"
+                    ? "Abrir relatório"
+                    : "Realizar consulta paga"}
+                </button>
+              )}
+            {order.checkoutUrl && (
+              <a
+                className="block rounded-xl border p-3 text-center text-sm"
+                href={order.checkoutUrl}
               >
-                Limpar Histórico Local
-              </Button>
-            </div>
-          )}
-
-        </div>
+                Continuar pagamento no Mercado Pago
+              </a>
+            )}
+            <button
+              className="text-xs font-semibold text-orange-700"
+              disabled={loading}
+              onClick={() => {
+                setSupportOrder(order);
+                setKind("error");
+                setMessage("");
+                setError(null);
+              }}
+            >
+              Ajuda / solicitar estorno
+            </button>
+          </article>
+        ))}
+        {loading && (
+          <p role="status" className="text-sm">
+            Aguarde…
+          </p>
+        )}
+        {nextOffset !== null && (
+          <button
+            type="button"
+            disabled={loading}
+            onClick={() => void more()}
+            className="w-full rounded-xl border p-3 text-sm"
+          >
+            Carregar mais compras
+          </button>
+        )}
+        {supportOrder && (
+          <form
+            className="space-y-3 rounded-xl border p-4"
+            onSubmit={(event) => void submit(event)}
+          >
+            <p className="text-sm font-bold">
+              Atendimento - {supportOrder.plate}
+            </p>
+            <label className="block text-xs" htmlFor="support-kind">
+              Motivo
+            </label>
+            <select
+              id="support-kind"
+              className="glass-control mt-1 w-full rounded-xl p-3"
+              value={kind}
+              onChange={(e) => setKind(e.target.value as "refund" | "error")}
+            >
+              <option value="error">Erro na consulta ou pagamento</option>
+              <option value="refund">Desisti / solicitar estorno</option>
+            </select>
+            <label className="block text-xs">
+              Descreva o ocorrido
+              <textarea
+                className="glass-control mt-1 w-full rounded-xl p-3"
+                minLength={10}
+                maxLength={2000}
+                required
+                value={message}
+                onChange={(e) => setMessage(e.target.value)}
+              />
+            </label>
+            <button
+              disabled={loading}
+              className="w-full rounded-xl bg-orange-500 p-3 text-sm font-bold"
+            >
+              Registrar solicitação
+            </button>
+            <button
+              type="button"
+              className="text-xs"
+              onClick={() => setSupportOrder(null)}
+            >
+              Cancelar
+            </button>
+          </form>
+        )}
+        {config?.supportUrl ? (
+          <a
+            href={config.supportUrl}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="block rounded-xl bg-slate-900 p-3 text-center text-sm font-bold text-white"
+          >
+            Contato direto com o suporte
+          </a>
+        ) : (
+          <p className="text-xs text-slate-500">
+            O canal de atendimento será disponibilizado antes da abertura das
+            vendas.
+          </p>
+        )}
       </div>
-    </div>
+    </Modal>
   );
-};
+}

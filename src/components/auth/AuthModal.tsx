@@ -1,259 +1,368 @@
-import React, { useState } from 'react';
-import { useAuth } from '../../hooks/useAuth';
-import { X, Mail, Lock, User, Eye, EyeOff, ShieldCheck, AlertCircle } from 'lucide-react';
+import React, { useState } from "react";
+import { useAuth } from "../../hooks/useAuth";
+import { authService } from "../../services/authService";
+import { errorMessage } from "../../services/http";
+import { Modal } from "../ui/Modal";
 
-interface AuthModalProps {
+export type EmailLink = { tokenHash: string; type: "signup" | "recovery" };
+interface Props {
   isOpen: boolean;
   onClose: () => void;
-  /** Callback chamado após auth bem-sucedida */
   onSuccess?: () => void;
+  emailLink: EmailLink | null;
+  onLinkConsumed: () => void;
 }
-
-type AuthMode = 'login' | 'register';
-
-export const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, onSuccess }) => {
-  const { login, register } = useAuth();
-  const [mode, setMode] = useState<AuthMode>('register');
-  const [showPassword, setShowPassword] = useState(false);
-  const [isLoading, setIsLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-
-  const [form, setForm] = useState({
-    name: '',
-    email: '',
-    password: '',
-    confirmPassword: '',
-  });
-
-  const handleChange = (field: keyof typeof form) => (e: React.ChangeEvent<HTMLInputElement>) => {
-    setForm((prev) => ({ ...prev, [field]: e.target.value }));
-    setError(null);
+const input =
+  "glass-control w-full rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-4 focus:ring-orange-100";
+const button =
+  "w-full rounded-xl bg-orange-500 px-4 py-3 font-bold text-slate-950 disabled:opacity-50";
+export function AuthModal({
+  isOpen,
+  onClose,
+  onSuccess,
+  emailLink,
+  onLinkConsumed,
+}: Props) {
+  const { login, register, session, refresh, logout } = useAuth();
+  const [mode, setMode] = useState<"login" | "register" | "recover">("login");
+  const [email, setEmail] = useState(""),
+    [password, setPassword] = useState(""),
+    [confirmPassword, setConfirmPassword] = useState("");
+  const [phone, setPhone] = useState(""),
+    [code, setCode] = useState(""),
+    [challenge, setChallenge] = useState<{
+      factorId: string;
+      challengeId: string;
+    } | null>(null);
+  const [busy, setBusy] = useState(false),
+    [error, setError] = useState<string | null>(null),
+    [message, setMessage] = useState<string | null>(null),
+    [show, setShow] = useState(false);
+  const mfa =
+      !!session?.mfaRequired && (!session.recovery || !!session.factorId),
+    recovery = !!session?.recovery;
+  const complete = () => {
+    setPassword("");
+    setConfirmPassword("");
+    setChallenge(null);
+    setCode("");
+    onSuccess?.();
+    onClose();
   };
-
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
+  const execute = async (work: () => Promise<void>) => {
+    setBusy(true);
     setError(null);
-
-    if (mode === 'register') {
-      if (!form.name.trim()) { setError('Por favor, informe seu nome.'); return; }
-      if (!form.email.trim()) { setError('Por favor, informe seu e-mail.'); return; }
-      if (form.password.length < 8) { setError('A senha deve ter pelo menos 8 caracteres.'); return; }
-      if (form.password !== form.confirmPassword) { setError('As senhas não coincidem.'); return; }
-    } else {
-      if (!form.email.trim()) { setError('Por favor, informe seu e-mail.'); return; }
-      if (!form.password) { setError('Por favor, informe sua senha.'); return; }
-    }
-
-    setIsLoading(true);
+    setMessage(null);
     try {
-        if (mode === 'register') {
-        await register({ name: form.name, email: form.email, password: form.password });
-      } else {
-        await login({ email: form.email, password: form.password });
-      }
-      onSuccess?.();
-      onClose();
-    } catch (err: any) {
-      setError(err.message || 'Ocorreu um erro. Tente novamente.');
+      await work();
+    } catch (err) {
+      setError(errorMessage(err));
     } finally {
-      setIsLoading(false);
+      setBusy(false);
     }
   };
-
-  const toggleMode = () => {
-    setMode((m) => (m === 'login' ? 'register' : 'login'));
-    setError(null);
-    setForm({ name: '', email: '', password: '', confirmPassword: '' });
+  const submit = (event: React.FormEvent) => {
+    event.preventDefault();
+    void execute(async () => {
+      if (emailLink) {
+        const result = await authService.confirm(
+          emailLink.tokenHash,
+          emailLink.type,
+        );
+        onLinkConsumed();
+        setMessage(
+          result.message || "E-mail verificado. Escolha sua nova senha.",
+        );
+        await refresh();
+        return;
+      }
+      if (mfa) {
+        if (!challenge) {
+          setChallenge(
+            await authService.challenge(
+              session?.needsEnrollment && !session.factorId ? phone : undefined,
+            ),
+          );
+          setMessage(
+            "Código enviado. Confira seu celular ou aplicativo autenticador.",
+          );
+          return;
+        }
+        const next = await authService.verify({ ...challenge, code });
+        await refresh();
+        if (!next.recovery && !next.mfaRequired) complete();
+        else {
+          setChallenge(null);
+          setCode("");
+        }
+        return;
+      }
+      if (recovery) {
+        if (password !== confirmPassword)
+          throw new Error("As senhas não coincidem.");
+        const result = await authService.resetPassword(password);
+        await refresh();
+        setPassword("");
+        setConfirmPassword("");
+        setMode("login");
+        setMessage(result.message);
+        return;
+      }
+      if (mode === "recover") {
+        setMessage((await authService.recover(email)).message);
+        return;
+      }
+      if (mode === "register") {
+        if (password !== confirmPassword)
+          throw new Error("As senhas não coincidem.");
+        setMessage((await register({ email, password })).message);
+        setPassword("");
+        setConfirmPassword("");
+        return;
+      }
+      const next = await login({ email, password });
+      setPassword("");
+      if (!next.mfaRequired) complete();
+    });
   };
-
-  if (!isOpen) return null;
-
+  const close = () => {
+    if (busy) return;
+    if (session && (session.mfaRequired || session.recovery)) void logout();
+    if (emailLink) onLinkConsumed();
+    setPassword("");
+    setCode("");
+    setChallenge(null);
+    onClose();
+  };
+  const title = emailLink
+    ? "Verificar e-mail"
+    : mfa
+      ? "Verificação de segurança"
+      : recovery
+        ? "Redefinir senha"
+        : mode === "register"
+          ? "Criar conta"
+          : mode === "recover"
+            ? "Recuperar acesso"
+            : "Entrar na sua conta";
   return (
-    <div
-      className="fixed inset-0 z-[200] flex items-center justify-center p-4"
-      role="dialog"
-      aria-modal="true"
-      aria-label="Autenticação"
-    >
-      {/* Overlay */}
-      <div
-        className="absolute inset-0 bg-slate-900/25 backdrop-blur-md"
-        onClick={onClose}
-      />
-
-      {/* Modal Card */}
-      <div className="glass-panel glass-sheen relative z-10 w-full max-w-md rounded-[1.75rem] shadow-[0_30px_90px_rgba(18,32,49,.22)] overflow-hidden text-slate-800">
-        
-        {/* Gradient top bar */}
-        <div className="h-1 w-full bg-gradient-to-r from-[#FF6A00] via-[#FFBA3D] to-white" />
-
-        {/* Header */}
-        <div className="flex items-start justify-between px-6 pt-6 pb-4">
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-xl bg-orange-500/15 flex items-center justify-center">
-              <ShieldCheck className="w-5 h-5 text-orange-400" />
-            </div>
-            <div>
-              <h2 className="text-base font-black text-[#0B1320] tracking-tight">
-                {mode === 'register' ? 'Criar conta gratuita' : 'Bem-vindo de volta!'}
-              </h2>
-              <p className="text-xs text-slate-500 mt-0.5">
-                {mode === 'register'
-                  ? 'Cadastre-se para consultar placas'
-                  : 'Faça login para continuar'}
-              </p>
-            </div>
-          </div>
-          <button
-            onClick={onClose}
-            className="w-8 h-8 flex items-center justify-center rounded-full hover:bg-white/80 text-slate-500 hover:text-slate-900 transition-colors cursor-pointer flex-shrink-0"
-            aria-label="Fechar"
+    <Modal isOpen={isOpen} onClose={close} title={title}>
+      <form onSubmit={submit} className="space-y-4">
+        {error && (
+          <p
+            role="alert"
+            className="rounded-xl bg-red-50 p-3 text-sm text-red-700"
           >
-            <X className="w-4 h-4" />
-          </button>
-        </div>
-
-        {/* Form */}
-        <form onSubmit={handleSubmit} className="px-6 pb-6 space-y-4">
-          
-          {/* Error banner */}
-          {error && (
-            <div className="flex items-start gap-2.5 p-3 bg-red-500/10 border border-red-500/30 rounded-xl text-red-300 text-xs font-medium">
-              <AlertCircle className="w-4 h-4 flex-shrink-0 mt-0.5 text-red-400" />
-              <span>{error}</span>
-            </div>
-          )}
-
-          {/* Name (register only) */}
-          {mode === 'register' && (
-            <div className="space-y-1.5">
-              <label className="text-xs font-semibold text-slate-600 block" htmlFor="auth-name">
-                Nome completo
-              </label>
-              <div className="relative">
-                <User className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500" />
-                <input
-                  id="auth-name"
-                  type="text"
-                  autoComplete="name"
-                  required
-                  value={form.name}
-                  onChange={handleChange('name')}
-                  placeholder="Ex: João Silva"
-                  className="glass-control w-full rounded-xl pl-10 pr-4 py-2.5 text-sm text-slate-900 placeholder:text-slate-400 focus:outline-none focus:border-orange-400 focus:ring-4 focus:ring-orange-100 transition-all"
-                />
-              </div>
-            </div>
-          )}
-
-          {/* Email */}
-          <div className="space-y-1.5">
-            <label className="text-xs font-semibold text-slate-600 block" htmlFor="auth-email">
-              E-mail
-            </label>
-            <div className="relative">
-              <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500" />
-              <input
-                id="auth-email"
-                type="email"
-                autoComplete="email"
-                required
-                value={form.email}
-                onChange={handleChange('email')}
-                placeholder="seu@email.com"
-                className="glass-control w-full rounded-xl pl-10 pr-4 py-2.5 text-sm text-slate-900 placeholder:text-slate-400 focus:outline-none focus:border-orange-400 focus:ring-4 focus:ring-orange-100 transition-all"
-              />
-            </div>
-          </div>
-
-          {/* Password */}
-          <div className="space-y-1.5">
-            <label className="text-xs font-semibold text-slate-600 block" htmlFor="auth-password">
-              Senha
-            </label>
-            <div className="relative">
-              <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500" />
-              <input
-                id="auth-password"
-                type={showPassword ? 'text' : 'password'}
-                autoComplete={mode === 'register' ? 'new-password' : 'current-password'}
-                required
-                value={form.password}
-                onChange={handleChange('password')}
-                placeholder={mode === 'register' ? 'Mínimo 8 caracteres' : '••••••••'}
-                className="glass-control w-full rounded-xl pl-10 pr-10 py-2.5 text-sm text-slate-900 placeholder:text-slate-400 focus:outline-none focus:border-orange-400 focus:ring-4 focus:ring-orange-100 transition-all"
-              />
-              <button
-                type="button"
-                onClick={() => setShowPassword((s) => !s)}
-                className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-700 transition-colors cursor-pointer"
-                aria-label={showPassword ? 'Ocultar senha' : 'Mostrar senha'}
-              >
-                {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
-              </button>
-            </div>
-          </div>
-
-          {/* Confirm password (register only) */}
-          {mode === 'register' && (
-            <div className="space-y-1.5">
-              <label className="text-xs font-semibold text-slate-600 block" htmlFor="auth-confirm">
-                Confirmar senha
-              </label>
-              <div className="relative">
-                <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500" />
-                <input
-                  id="auth-confirm"
-                  type={showPassword ? 'text' : 'password'}
-                  autoComplete="new-password"
-                  required
-                  value={form.confirmPassword}
-                  onChange={handleChange('confirmPassword')}
-                  placeholder="Repita a senha"
-                  className="glass-control w-full rounded-xl pl-10 pr-4 py-2.5 text-sm text-slate-900 placeholder:text-slate-400 focus:outline-none focus:border-orange-400 focus:ring-4 focus:ring-orange-100 transition-all"
-                />
-              </div>
-            </div>
-          )}
-
-          {/* Submit */}
-          <button
-            type="submit"
-            disabled={isLoading}
-            id="auth-submit-btn"
-            className="w-full mt-2 py-3 rounded-xl bg-orange-500 hover:bg-orange-400 disabled:opacity-50 disabled:cursor-not-allowed text-slate-950 font-black text-sm tracking-wide transition-all hover:scale-[1.02] active:scale-[0.98] shadow-lg shadow-orange-500/25 cursor-pointer flex items-center justify-center gap-2"
+            {error}
+          </p>
+        )}
+        {message && (
+          <p
+            role="status"
+            className="rounded-xl bg-emerald-50 p-3 text-sm text-emerald-800"
           >
-            {isLoading ? (
-              <div className="w-4 h-4 border-2 border-slate-900 border-t-transparent rounded-full animate-spin" />
-            ) : mode === 'register' ? (
-              'Criar conta e consultar'
-            ) : (
-              'Entrar e consultar'
-            )}
-          </button>
-
-          {/* Toggle mode e Consulta sem cadastro */}
-          <div className="space-y-2 pt-1 text-center">
-            <p className="text-xs text-slate-500">
-              {mode === 'register' ? 'Já tem uma conta?' : 'Ainda não tem conta?'}{' '}
-              <button
-                type="button"
-                onClick={toggleMode}
-                className="text-orange-400 font-semibold hover:text-orange-300 transition-colors cursor-pointer"
-              >
-                {mode === 'register' ? 'Fazer login' : 'Cadastrar agora'}
-              </button>
+            {message}
+          </p>
+        )}
+        {emailLink ? (
+          <p className="text-sm text-slate-600">
+            Confirme para validar o link de{" "}
+            {emailLink.type === "recovery"
+              ? "recuperação de acesso"
+              : "cadastro"}{" "}
+            recebido por e-mail.
+          </p>
+        ) : mfa ? (
+          <>
+            <p className="text-sm text-slate-600">
+              {session?.needsEnrollment && !session.factorId
+                ? "Cadastre seu celular para proteger a conta. O código por SMS será necessário para acessar as compras."
+                : "Confirme seu segundo fator para continuar."}
             </p>
+            {!challenge && session?.needsEnrollment && !session.factorId && (
+              <label className="block text-sm">
+                Celular com DDI
+                <input
+                  className={input}
+                  type="tel"
+                  autoComplete="tel"
+                  placeholder="+5511999999999"
+                  value={phone}
+                  onChange={(e) => setPhone(e.target.value)}
+                  pattern="\+[1-9][0-9]{7,14}"
+                  required
+                />
+              </label>
+            )}
+            {challenge && (
+              <label className="block text-sm">
+                Código de segurança
+                <input
+                  className={input}
+                  autoComplete="one-time-code"
+                  inputMode="numeric"
+                  pattern="[0-9]{6,8}"
+                  maxLength={8}
+                  value={code}
+                  onChange={(e) => setCode(e.target.value)}
+                  required
+                />
+              </label>
+            )}
+          </>
+        ) : (
+          <>
+            {!recovery && (
+              <label className="block text-sm">
+                E-mail
+                <input
+                  className={input}
+                  type="email"
+                  autoComplete="email"
+                  maxLength={254}
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  required
+                />
+              </label>
+            )}
+            {(recovery || mode !== "recover") && (
+              <>
+                <label className="block text-sm">
+                  Senha
+                  <input
+                    className={input}
+                    type={show ? "text" : "password"}
+                    autoComplete={
+                      recovery || mode === "register"
+                        ? "new-password"
+                        : "current-password"
+                    }
+                    minLength={recovery || mode === "register" ? 12 : 1}
+                    maxLength={72}
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    required
+                  />
+                </label>
+                {(recovery || mode === "register") && (
+                  <>
+                    <p className="text-xs text-slate-500">
+                      Use de 12 a 72 caracteres. Prefira uma frase longa e
+                      exclusiva.
+                    </p>
+                    <label className="block text-sm">
+                      Confirmar senha
+                      <input
+                        className={input}
+                        type={show ? "text" : "password"}
+                        autoComplete="new-password"
+                        minLength={12}
+                        maxLength={72}
+                        value={confirmPassword}
+                        onChange={(e) => setConfirmPassword(e.target.value)}
+                        required
+                      />
+                    </label>
+                  </>
+                )}
+                <label className="flex gap-2 text-xs">
+                  <input
+                    type="checkbox"
+                    checked={show}
+                    onChange={(e) => setShow(e.target.checked)}
+                  />
+                  Mostrar senha
+                </label>
+              </>
+            )}
+          </>
+        )}
+        <button disabled={busy} className={button} type="submit">
+          {busy
+            ? "Aguarde…"
+            : emailLink
+              ? "Confirmar link"
+              : mfa
+                ? challenge
+                  ? "Validar código"
+                  : "Enviar código"
+                : recovery
+                  ? "Salvar nova senha"
+                  : mode === "register"
+                    ? "Cadastrar e confirmar e-mail"
+                    : mode === "recover"
+                      ? "Enviar link por e-mail"
+                      : "Entrar"}
+        </button>
+        {mfa && challenge && (
+          <button
+            type="button"
+            disabled={busy}
+            className="w-full text-sm text-orange-700"
+            onClick={() => {
+              setChallenge(null);
+              setCode("");
+            }}
+          >
+            Enviar outro código
+          </button>
+        )}
+        {!emailLink && !session && (
+          <div className="space-y-3 border-t pt-4 text-center">
             <button
               type="button"
-              onClick={onClose}
-              className="w-full py-2 text-xs font-semibold text-slate-400 hover:text-orange-400 transition-colors cursor-pointer border border-dashed border-slate-700 hover:border-orange-500/40 rounded-xl"
+              disabled={busy}
+              className="w-full rounded-xl border p-3 text-sm font-semibold"
+              onClick={() => void execute(() => authService.google())}
             >
-              Voltar à busca
+              Continuar com Google
             </button>
+            <div className="flex flex-wrap justify-center gap-4 text-xs text-orange-700">
+              <button
+                type="button"
+                disabled={busy}
+                onClick={() => {
+                  setMode(mode === "register" ? "login" : "register");
+                  setError(null);
+                  setMessage(null);
+                  setPassword("");
+                }}
+              >
+                {" "}
+                {mode === "register" ? "Já tenho conta" : "Criar conta"}
+              </button>
+              <button
+                type="button"
+                disabled={busy}
+                onClick={() => {
+                  setMode(mode === "recover" ? "login" : "recover");
+                  setError(null);
+                  setPassword("");
+                }}
+              >
+                {mode === "recover"
+                  ? "Voltar ao login"
+                  : "Esqueci a senha / desbloquear"}
+              </button>
+              <button
+                type="button"
+                disabled={busy || !email}
+                onClick={() =>
+                  void execute(async () =>
+                    setMessage((await authService.resend(email)).message),
+                  )
+                }
+              >
+                Reenviar confirmação
+              </button>
+            </div>
           </div>
-        </form>
-      </div>
-    </div>
+        )}
+        <p className="text-center text-xs text-slate-500">
+          A sessão expira após 30 minutos sem atividade.
+        </p>
+      </form>
+    </Modal>
   );
-};
+}

@@ -94,7 +94,7 @@ export const HeroSearch: React.FC<HeroSearchProps> = ({ plate, setPlate, onSearc
                     </div>
 
                     <button type="button" onClick={() => onSearch()} disabled={isLoading || plate.length < 7} id="search-plate-btn" className="mt-4 flex w-full items-center justify-center gap-2 rounded-2xl bg-gradient-to-b from-[#FF8126] to-[#F06400] py-3.5 text-sm font-bold text-white shadow-[0_9px_20px_rgba(240,100,0,.23)] ring-1 ring-orange-600/15 transition hover:-translate-y-0.5 hover:shadow-[0_14px_26px_rgba(240,100,0,.27)] active:translate-y-0 disabled:cursor-not-allowed disabled:opacity-45">
-                      {isLoading ? <span className="h-4 w-4 animate-spin rounded-full border-2 border-white border-t-transparent" /> : <><ArrowRight className="h-4 w-4" /> Consultar veículo</>}
+                      {isLoading ? <span className="h-4 w-4 animate-spin rounded-full border-2 border-white border-t-transparent" /> : <><ArrowRight className="h-4 w-4" /> Consultar veículo · R$ 50,00</>}
                     </button>
 
                     <div className="mt-4 flex items-center justify-center gap-2 text-center text-[10px] leading-5 text-slate-500">
