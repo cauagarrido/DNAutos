@@ -1,7 +1,12 @@
 import fs from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
-import ts from "typescript";
+import { createRequire } from "node:module";
+
+const requireFrontend = createRequire(
+  new URL("../frontend/package.json", import.meta.url),
+);
+const ts = requireFrontend("typescript");
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const skipped = new Set([
@@ -51,6 +56,7 @@ function exactCase(file) {
 }
 for (const file of [
   "frontend/src",
+  "frontend/tests",
   "backend/src",
   "backend/tests",
   "backend/scripts",

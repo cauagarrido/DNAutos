@@ -10,23 +10,16 @@
     "setup": "npm ci --prefix frontend && npm ci --prefix backend",
     "dev": "npm --prefix frontend run dev",
     "dev:backend": "npm --prefix backend run dev",
-    "dev:all": "concurrently \"npm run dev\" \"npm run dev:backend\"",
+    "dev:all": "npm --prefix frontend run dev:all",
     "build": "npm --prefix frontend run build",
     "build:backend": "npm --prefix backend run build",
     "build:all": "npm run build && npm run build:backend",
     "preview": "npm --prefix frontend run preview",
     "start": "npm --prefix backend start",
     "test": "npm --prefix backend test",
-    "test:browser": "playwright test",
+    "test:browser": "npm --prefix frontend run test:browser --",
     "test:production": "node --test tests/production/*.test.mjs",
     "check:imports": "node scripts/check-imports.mjs",
     "audit": "npm audit && npm audit --prefix frontend && npm audit --prefix backend"
-  },
-  "devDependencies": {
-    "@axe-core/playwright": "4.14.0",
-    "@playwright/test": "1.65.0",
-    "concurrently": "^10.0.5",
-    "prettier": "3.10.0",
-    "typescript": "^5.7.3"
   }
 }

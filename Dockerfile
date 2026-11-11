@@ -1,7 +1,6 @@
 FROM node:24-bookworm-slim AS build
 WORKDIR /app
 COPY package.json package-lock.json ./
-RUN npm ci
 COPY frontend/package.json frontend/package-lock.json ./frontend/
 RUN npm ci --prefix frontend
 COPY backend/package.json backend/package-lock.json ./backend/

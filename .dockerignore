@@ -15,6 +15,9 @@ tmp
 output
 playwright-report
 test-results
+**/tmp
+**/test-results
+**/playwright-report
 private-docs
 docs
 ANYCAR_SETUP.md
