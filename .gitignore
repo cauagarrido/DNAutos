@@ -81,3 +81,18 @@ test-results/
 playwright-report/
 .vercel/
 supabase/.temp/
+
+# Material operacional privado: permanece somente na máquina do responsável.
+/private-docs/
+/docs/
+/output/
+/ANYCAR_SETUP.md
+/backend/README.md
+/scripts/generate_guide_pdf.py
+/scripts/requirements-pdf.txt
+*.pem
+*.key
+*.p12
+*.pfx
+*.dump
+*.backup

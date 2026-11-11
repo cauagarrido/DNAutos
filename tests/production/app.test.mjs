@@ -114,11 +114,18 @@ test("source, environment files and deployment files are never served as static 
     "/backend/src/app.ts",
     "/Dockerfile",
     "/package.json",
+    "/private-docs/README.md",
+    "/private-docs/docs/GUIA_INTEGRACAO_DEPLOY.md",
+    "/private-docs/output/pdf/guia-integracao-deploy-dnautos.pdf",
+    "/docs/GUIA_INTEGRACAO_DEPLOY.md",
+    "/ANYCAR_SETUP.md",
   ]) {
     const response = await fetch(origin + file),
       body = await response.text();
     assert.ok(response.status === 404 || body.includes('id="root"'), file);
     assert.ok(!body.includes("SESSION_ENCRYPTION_KEY="), file);
     assert.ok(!body.includes("FROM node:"), file);
+    assert.ok(!body.startsWith("%PDF-"), file);
+    assert.ok(!body.includes("GUIA DE IMPLANTAÇÃO"), file);
   }
 });
