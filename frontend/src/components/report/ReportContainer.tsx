@@ -62,7 +62,7 @@ export const ReportContainer: React.FC<ReportContainerProps> = ({
         confetti({ particleCount: 60, spread: 55, origin: { y: 0.6 } });
       } catch (e) {}
     } catch (err) {
-      console.error(err);
+      console.error("Falha ao enviar solicitação.");
     } finally {
       setIsInsuranceLoading(false);
     }

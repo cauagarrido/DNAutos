@@ -796,6 +796,11 @@ test("ANYCAR normalizer preserves unknown risks and omits raw personal data", as
           sinistro: { hasAccident: true },
           leilao: { hasAuction: true },
         },
+        cadastral: {
+          chassi: "9BWZZZ377VT004251",
+          renavam: "01234567891",
+          motor: "EA111987654",
+        },
         financeiro: { total: 0 },
         proprietario: { cpf: "12345678900" },
       },
@@ -808,7 +813,17 @@ test("ANYCAR normalizer preserves unknown risks and omits raw personal data", as
     assert.equal(report.risks.auction.auctionScoreRisk, null);
     assert.equal(report.financial.ipvaStatus, "Não informado");
     assert.equal(report.providerData, undefined);
-    assert.ok(!JSON.stringify(report).includes("12345678900"));
+    assert.equal(report.basicInfo.chassisMasked, "9BW**********4251");
+    assert.equal(report.cadastral.chassis, "9BW**********4251");
+    assert.equal(report.basicInfo.renavamMasked, "012****7891");
+    assert.equal(report.cadastral.renavam, "012****7891");
+    assert.equal(report.basicInfo.engineMasked, "EA1****7654");
+    assert.equal(report.cadastral.engine, "EA1****7654");
+    const serialized = JSON.stringify(report);
+    assert.ok(!serialized.includes("12345678900"));
+    assert.ok(!serialized.includes("9BWZZZ377VT004251"));
+    assert.ok(!serialized.includes("01234567891"));
+    assert.ok(!serialized.includes("EA111987654"));
   } finally {
     stub.mock.restore();
   }

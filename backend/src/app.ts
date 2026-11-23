@@ -28,6 +28,10 @@ app.use(
     },
   }),
 );
+app.use((_req, res, next) => {
+  res.setHeader("Permissions-Policy", "camera=(), microphone=(), geolocation=()");
+  next();
+});
 app.use(
   cors({
     origin: new URL(env.publicAppUrl).origin,

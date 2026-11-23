@@ -50,6 +50,21 @@ const obj = (value: unknown): Record<string, unknown> =>
     : {};
 const hasValue = (value: unknown) =>
   value !== undefined && value !== null && String(value).trim() !== "";
+const maskIdentifier = (
+  value: string,
+  visibleStart = 3,
+  visibleEnd = 4,
+): string => {
+  const trimmed = value.trim();
+  if (!trimmed) return "";
+  if (trimmed.length <= visibleStart + visibleEnd) {
+    return trimmed.length <= 2
+      ? "*".repeat(trimmed.length)
+      : `${trimmed[0]}${"*".repeat(trimmed.length - 2)}${trimmed[trimmed.length - 1]}`;
+  }
+  const maskedLen = trimmed.length - visibleStart - visibleEnd;
+  return `${trimmed.slice(0, visibleStart)}${"*".repeat(maskedLen)}${trimmed.slice(-visibleEnd)}`;
+};
 
 export class AnycarService {
   static async getFullReport(plate: string): Promise<FullVehicleReport> {
@@ -182,16 +197,16 @@ export class AnycarService {
         fuel: text(cadastral.combustivel),
         city: text(cadastral.municipio),
         state: text(cadastral.uf),
-        chassisMasked: text(cadastral.chassi),
-        renavamMasked: text(cadastral.renavam),
-        engineMasked: text(cadastral.motor),
+        chassisMasked: maskIdentifier(text(cadastral.chassi)),
+        renavamMasked: maskIdentifier(text(cadastral.renavam)),
+        engineMasked: maskIdentifier(text(cadastral.motor)),
         fipeValue,
         fipeCode: text(fipe.codigoFipe, raw.codigoFipe),
       },
       cadastral: {
-        chassis: text(cadastral.chassi),
-        engine: text(cadastral.motor),
-        renavam: text(cadastral.renavam),
+        chassis: maskIdentifier(text(cadastral.chassi)),
+        engine: maskIdentifier(text(cadastral.motor)),
+        renavam: maskIdentifier(text(cadastral.renavam)),
         origin: text(cadastral.origem),
         powerHp: text(cadastral.potencia),
         cylinderCapacity: text(cadastral.cilindrada),

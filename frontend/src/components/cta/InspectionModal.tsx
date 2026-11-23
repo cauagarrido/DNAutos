@@ -58,7 +58,7 @@ export const InspectionModal: React.FC<InspectionModalProps> = ({
         });
       } catch (e) {}
     } catch (err) {
-      console.error(err);
+      console.error("Falha ao enviar solicitação.");
     } finally {
       setIsLoading(false);
     }

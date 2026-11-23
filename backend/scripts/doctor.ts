@@ -14,6 +14,8 @@ async function main() {
       env.publicApiUrl.startsWith("https://"),
     sameOrigin:
       new URL(env.publicAppUrl).origin === new URL(env.publicApiUrl).origin,
+    productionNodeEnv:
+      !env.publicAppUrl.startsWith("https://") || env.nodeEnv === "production",
     mfa: env.requirePhoneMfa,
     price: PRICE_CENTS === 5000,
     contact: /^https:\/\//.test(env.supportUrl),
