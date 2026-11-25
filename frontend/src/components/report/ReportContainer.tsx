@@ -298,7 +298,7 @@ export const ReportContainer: React.FC<ReportContainerProps> = ({
                     <span>Débitos e multas</span>
                   </div>
                   <span className="font-semibold text-slate-700">
-                    {financial.hasDebts == null ? 'Não informado' : financial.hasDebts ? (financial.totalDebtsAmount == null ? 'Débitos encontrados' : `R$ ${financial.totalDebtsAmount.toFixed(2)}`) : 'Não possui débitos'}
+                    {financial.hasDebts == null ? 'Não informado' : financial.hasDebts ? (financial.totalDebtsAmount == null ? 'Débitos encontrados' : `R$ ${financial.totalDebtsAmount.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`) : 'Não possui débitos'}
                   </span>
                 </div>
 
@@ -469,25 +469,37 @@ export const ReportContainer: React.FC<ReportContainerProps> = ({
                 </div>
 
                 <div className="flex items-center gap-2">
-                  {financial.gravame.hasFinancialRestriction ? (
+                  {financial.gravame.hasFinancialRestriction === true ? (
                     <div className="w-4 h-4 rounded-full bg-amber-500 flex items-center justify-center text-white flex-shrink-0">
                       <AlertTriangle className="w-2.5 h-2.5 stroke-[2.5]" />
                     </div>
-                  ) : (
+                  ) : financial.gravame.hasFinancialRestriction === false ? (
                     <div className="w-4 h-4 rounded-full bg-[#FF6A00] flex items-center justify-center text-white flex-shrink-0">
                       <Check className="w-2.5 h-2.5 stroke-[3]" />
                     </div>
+                  ) : (
+                    <div className="w-4 h-4 rounded-full bg-slate-300 flex items-center justify-center text-white flex-shrink-0 text-[10px] font-bold">?</div>
                   )}
-                  <span className={`text-[11px] font-medium ${financial.gravame.hasFinancialRestriction ? 'text-amber-700' : 'text-slate-700'}`}>
+                  <span className={`text-[11px] font-medium ${financial.gravame.hasFinancialRestriction === true ? 'text-amber-700' : financial.gravame.hasFinancialRestriction === false ? 'text-slate-700' : 'text-slate-500'}`}>
                     {financial.gravame.hasFinancialRestriction == null ? 'Gravame não informado' : financial.gravame.hasFinancialRestriction ? 'Com gravame' : 'Sem gravame'}
                   </span>
                 </div>
 
                 <div className="flex items-center gap-2">
-                  <div className="w-4 h-4 rounded-full bg-[#FF6A00] flex items-center justify-center text-white flex-shrink-0">
-                    <Check className="w-2.5 h-2.5 stroke-[3]" />
-                  </div>
-                  <span className="text-[11px] font-medium text-slate-700">Débitos: {financial.hasDebts == null ? 'Não informado' : financial.hasDebts ? 'Há registros' : 'Sem registros'}</span>
+                  {financial.hasDebts === true ? (
+                    <div className="w-4 h-4 rounded-full bg-amber-500 flex items-center justify-center text-white flex-shrink-0">
+                      <AlertTriangle className="w-2.5 h-2.5 stroke-[2.5]" />
+                    </div>
+                  ) : financial.hasDebts === false ? (
+                    <div className="w-4 h-4 rounded-full bg-[#FF6A00] flex items-center justify-center text-white flex-shrink-0">
+                      <Check className="w-2.5 h-2.5 stroke-[3]" />
+                    </div>
+                  ) : (
+                    <div className="w-4 h-4 rounded-full bg-slate-300 flex items-center justify-center text-white flex-shrink-0 text-[10px] font-bold">?</div>
+                  )}
+                  <span className={`text-[11px] font-medium ${financial.hasDebts === true ? 'text-amber-700' : financial.hasDebts === false ? 'text-slate-700' : 'text-slate-500'}`}>
+                    Débitos: {financial.hasDebts == null ? 'Não informado' : financial.hasDebts ? 'Há registros' : 'Sem registros'}
+                  </span>
                 </div>
               </div>
             </div>
@@ -679,17 +691,19 @@ export const ReportContainer: React.FC<ReportContainerProps> = ({
             </div>
           </div>
 
-          <div className="border border-slate-200 rounded-xl p-4">
-            <h4 className="font-bold text-slate-900 mb-2">Histórico FIPE Recente</h4>
-            <div className="grid grid-cols-3 sm:grid-cols-5 gap-2 text-center">
-              {cadastral.fipeHistory.map((item, idx) => (
-                <div key={idx} className="p-2 rounded bg-slate-50 border border-slate-100">
-                  <span className="text-[10px] text-slate-500 block">{item.month}</span>
-                  <strong className="text-xs font-mono text-slate-800">R$ {item.value.toLocaleString('pt-BR')}</strong>
-                </div>
-              ))}
+          {cadastral.fipeHistory.length > 0 && (
+            <div className="border border-slate-200 rounded-xl p-4">
+              <h4 className="font-bold text-slate-900 mb-2">Histórico FIPE Recente</h4>
+              <div className="grid grid-cols-3 sm:grid-cols-5 gap-2 text-center">
+                {cadastral.fipeHistory.map((item, idx) => (
+                  <div key={idx} className="p-2 rounded bg-slate-50 border border-slate-100">
+                    <span className="text-[10px] text-slate-500 block">{item.month}</span>
+                    <strong className="text-xs font-mono text-slate-800">R$ {item.value.toLocaleString('pt-BR')}</strong>
+                  </div>
+                ))}
+              </div>
             </div>
-          </div>
+          )}
         </div>
       </Modal>
 

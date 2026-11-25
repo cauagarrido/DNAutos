@@ -16,7 +16,7 @@ export function getPool() {
       idleTimeoutMillis: 10_000,
       statement_timeout: 15_000,
       ssl:
-        env.nodeEnv === "production" || env.databaseCa
+        env.nodeEnv === "production" || env.databaseCa || !["localhost", "127.0.0.1", "::1"].includes(url.hostname)
           ? { rejectUnauthorized: true, ca: env.databaseCa }
           : undefined,
     });

@@ -22,7 +22,7 @@ import { ReportService } from "../src/modules/vehicle/report.service";
 import { VehicleService } from "../src/modules/vehicle/vehicle.service";
 import { isIdle } from "../src/modules/auth/session.service";
 import app from "../src/app";
-import { AnycarService } from "../src/integrations/anycar/anycar.client";
+import { AnycarService, parseLocaleNumber } from "../src/integrations/anycar/anycar.client";
 import axios from "axios";
 import { FipeService } from "../src/integrations/fipe/fipe.client";
 
@@ -981,4 +981,12 @@ test("restricted runtime role has access to app data but no access to Supabase a
   } finally {
     await db.exec("RESET ROLE");
   }
+});
+
+test("parseLocaleNumber parses pt-BR currency, thousand-separated numbers and invalid values safely", () => {
+  assert.equal(parseLocaleNumber("R$ 1.234,56"), 1234.56);
+  assert.equal(parseLocaleNumber("50.000"), 50000);
+  assert.equal(parseLocaleNumber("1234.56"), 1234.56);
+  assert.equal(parseLocaleNumber(42), 42);
+  assert.equal(parseLocaleNumber("", null, "sem valor"), null);
 });

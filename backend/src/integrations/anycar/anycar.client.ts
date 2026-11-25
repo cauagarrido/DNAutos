@@ -10,24 +10,27 @@ type AnycarEnvelope = {
 };
 const text = (...values: unknown[]) => {
   const v = values.find(
-    (x) => x !== undefined && x !== null && String(x).trim() !== "",
+    (x) =>
+      (typeof x === "string" || typeof x === "number" || typeof x === "boolean") &&
+      String(x).trim() !== "",
   );
-  return v === undefined ? "" : String(v);
+  return v === undefined ? "" : String(v).trim();
 };
-const numberOrNull = (...values: unknown[]): number | null => {
-  const v = values.find((x) => x !== undefined && x !== null && x !== "");
+export const parseLocaleNumber = (...values: unknown[]): number | null => {
+  const v = values.find((x) => x !== undefined && x !== null && String(x).trim() !== "");
   if (v === undefined) return null;
-  const n =
-    typeof v === "number"
-      ? v
-      : Number(
-          String(v)
-            .replace(/[^\d,.-]/g, "")
-            .replace(/\.(?=.*\.)/g, "")
-            .replace(",", "."),
-        );
+  if (typeof v === "number") return Number.isFinite(v) ? v : null;
+  let raw = String(v).replace(/[^\d,.-]/g, "");
+  if (!raw || raw === "-" || raw === "." || raw === ",") return null;
+  if (raw.includes(",")) {
+    raw = raw.replace(/\./g, "").replace(",", ".");
+  } else if (/^-?\d{1,3}(\.\d{3})+$/.test(raw)) {
+    raw = raw.replace(/\./g, "");
+  }
+  const n = Number(raw);
   return Number.isFinite(n) ? n : null;
 };
+const numberOrNull = parseLocaleNumber;
 const flag = (...values: unknown[]): boolean | null => {
   const v = values.find((x) => x !== undefined && x !== null && x !== "");
   if (v === undefined) return null;

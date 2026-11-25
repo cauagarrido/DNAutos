@@ -1,4 +1,5 @@
 import axios from "axios";
+import { HttpError } from "../../shared/security";
 import { env } from "../../config/env";
 import {
   VehicleKind,
@@ -32,6 +33,16 @@ fipeClient.interceptors.request.use((config) => {
   return config;
 });
 
+
+function handleFipeError(op: string, error: any, fallbackMessage: string): never {
+  const status = error?.response?.status ?? null;
+  const code = error?.code ?? null;
+  console.error(JSON.stringify({ event: "fipe_error", op, status, code }));
+  if (status === 400 || status === 404) throw new HttpError(404, "Registro FIPE não encontrado.");
+  if (status === 429) throw new HttpError(429, "Limite de consultas FIPE atingido. Tente novamente em instantes.");
+  throw new HttpError(502, fallbackMessage);
+}
+
 export class FipeService {
   /**
    * Retorna lista de marcas FIPE
@@ -45,13 +56,7 @@ export class FipeService {
         nome: item.name,
       }));
     } catch (error: any) {
-      console.error(
-        `[FipeService] Erro ao buscar marcas (${tipo}):`,
-        error?.message || error,
-      );
-      throw new Error(
-        `Falha ao obter marcas da Tabela FIPE: ${error?.message || "Erro de conexão"}`,
-      );
+      handleFipeError("getBrands", error, "Falha ao obter marcas da Tabela FIPE.");
     }
   }
 
@@ -72,11 +77,7 @@ export class FipeService {
         nome: m.name,
       }));
     } catch (error: any) {
-      console.error(
-        `[FipeService] Erro ao buscar modelos (brand: ${brandCode}):`,
-        error?.message || error,
-      );
-      throw new Error(`Falha ao obter modelos da marca ${brandCode}`);
+      handleFipeError("getModels", error, "Falha ao obter modelos da Tabela FIPE.");
     }
   }
 
@@ -98,11 +99,7 @@ export class FipeService {
         nome: y.name,
       }));
     } catch (error: any) {
-      console.error(
-        `[FipeService] Erro ao buscar anos (${brandCode}/${modelCode}):`,
-        error?.message || error,
-      );
-      throw new Error(`Falha ao obter anos para o modelo ${modelCode}`);
+      handleFipeError("getYears", error, "Falha ao obter anos da Tabela FIPE.");
     }
   }
 
@@ -133,13 +130,7 @@ export class FipeService {
         SiglaCombustivel: d.fuelAcronym,
       };
     } catch (error: any) {
-      console.error(
-        `[FipeService] Erro ao buscar dados do veículo (${brandCode}/${modelCode}/${yearCode}):`,
-        error?.message || error,
-      );
-      throw new Error(
-        `Falha ao obter cotação FIPE para os parâmetros informados`,
-      );
+      handleFipeError("getVehicleData", error, "Falha ao obter cotação FIPE.");
     }
   }
 }

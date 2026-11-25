@@ -9,7 +9,7 @@ import { csrfGuard } from "./http/middleware/security";
 import routes from "./http/routes";
 const app = express();
 app.disable("x-powered-by");
-app.set("trust proxy", process.env.TRUST_PROXY === "1" ? 1 : false);
+app.set("trust proxy", process.env.TRUST_PROXY === "1" || process.env.VERCEL === "1" ? 1 : false);
 app.use(
   helmet({
     frameguard: { action: "deny" },

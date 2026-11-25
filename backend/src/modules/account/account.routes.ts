@@ -48,11 +48,16 @@ router.post(
       const result = await database.transaction(async (db) => {
         const order = (
           await db.query(
-            "SELECT id FROM benz.orders WHERE id=$1 AND user_id=$2 FOR UPDATE",
+            "SELECT id, status FROM benz.orders WHERE id=$1 AND user_id=$2 FOR UPDATE",
             [orderId, req.userId],
           )
         ).rows[0];
         if (!order) throw new HttpError(404, "Compra não encontrada.");
+        if (kind === "refund" && order.status !== "approved")
+          throw new HttpError(
+            409,
+            "Estorno só pode ser solicitado após a confirmação do pagamento.",
+          );
         const existing = (
           await db.query(
             "SELECT id FROM benz.support_requests WHERE order_id=$1 AND kind=$2 AND status='open'",

@@ -19,6 +19,8 @@ async function main() {
     mfa: env.requirePhoneMfa,
     price: PRICE_CENTS === 5000,
     contact: /^https:\/\//.test(env.supportUrl),
+    cron: env.cronSecret.length >= 32,
+    trustProxy: !env.publicAppUrl.startsWith("https://") || process.env.TRUST_PROXY === "1" || process.env.VERCEL === "1",
   };
   if (env.databaseUrl) {
     try {
